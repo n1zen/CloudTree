@@ -5,36 +5,46 @@
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   SafeAreaProvider,
-  useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-import HomePage from './src/pages/HomePage.tsx';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import HomeScreen from './src/screens/HomeScreen.tsx';
+import AboutScreen from './src/screens/AboutScreen.tsx';
+import SensorScreen from './src/screens/SensorScreen.jsx';
+
+const Stack = createNativeStackNavigator();
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <AppContent />
     </SafeAreaProvider>
   );
 }
 
 function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      {/* <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      /> */}
-      <HomePage />
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="Home" component={HomeScreen}
+            options={{ title: 'CloudTree' }}
+          />
+          <Stack.Screen name="Sensors" component={SensorScreen}
+            options={{ title: 'Sensors' }}
+          />
+          <Stack.Screen name="About" component={AboutScreen}
+            options={{ title: 'About' }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     </View>
   );
 }
