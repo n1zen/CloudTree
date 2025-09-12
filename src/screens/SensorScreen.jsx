@@ -3,6 +3,8 @@ import { View, Text, Button } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Paho from 'paho-mqtt';
 
+import { getDefaultIp, getWebSocketPort } from '../lib/config.ts';
+
 export default function SensorScreen() {
 
     const [soilData, setSoilData] = useState({
@@ -14,16 +16,23 @@ export default function SensorScreen() {
     const [shouldConnect, setShouldConnect] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
-    // Replace with your Raspberry Pi's IP address
-    const PI_IP_ADDRESS = '10.42.0.1';
-    const clientId = 'client-' + Math.random().toString(16).slice(2);
+    // // Replace with your Raspberry Pi's IP address
+    // const IP = useRef(null);
+    // const PORT = useRef(9001); // Replace with your WebSocket port
+    async function fetchConfig() {
+        const ip = await getDefaultIp();
+        const port = await getWebSocketPort();
+        return { ip, port };
+    }
 
     useEffect(() => {
         let client;
+        const clientId = 'client-' + Math.random().toString(16).slice(2);
         const connectClient = async () => {
+            const { ip: IP, port: PORT } = await fetchConfig();
             if (!shouldConnect) return;
             try {
-                const wsUrl = `ws://${PI_IP_ADDRESS}:9001/`;
+                const wsUrl = `ws://${IP}:${PORT}/`;
                 client = new Paho.Client(wsUrl, clientId);
                 client.onConnectionLost = (response) => {
                     console.log('Connection lost:', response?.errorMessage);

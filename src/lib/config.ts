@@ -1,24 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DefaultTheme } from '@react-navigation/native';
 
-const IP_ADDRESS_KEY = "@cloudtree_app_ip_address";
-const DEFAULT_IP = "10.42.0.1";
+import { startDiscovery, stopDiscovery } from './udpService.js';
 
+startDiscovery();
+setTimeout(() => {
+    stopDiscovery();
+}, 10000);
 
-export const generateClientId = (): string => {
-    return 'client-' + Math.random().toString(16).slice(2);
+export async function getDefaultIp() {
+    const ip = await AsyncStorage.getItem('ip');
+    return ip ?? '192.168.100.66';
 }
 
-export const getBaseUrl = async (): Promise<string> => {
-    try {
-        const ipAddress = await AsyncStorage.getItem(IP_ADDRESS_KEY);
-        return `http://${ipAddress || DEFAULT_IP}:8000`;
-    } catch (error) {
-        console.error('Error getting IP address:', error);
-        return `http://${DEFAULT_IP}:8000`;
-    }
-};
+export async function getWebSocketPort() {
+    const port = await AsyncStorage.getItem('websocketPort');
+    return port ?? '9001';
+}
 
-export const getMqttHost = (): String => {
-    return DEFAULT_IP
-}; 
+export async function getHttpPort() {
+    const port = await AsyncStorage.getItem('httpPort');
+    return port ?? '8000';
+}
