@@ -1,19 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { startDiscovery, stopDiscovery } from './udpService.js';
+// import { startDiscovery, stopDiscovery } from './udpService.js';
 
-startDiscovery();
-setTimeout(() => {
-    stopDiscovery();
-}, 10000);
+// startDiscovery();
+// setTimeout(() => {
+//     stopDiscovery();
+// }, 10000);
 
 export async function getDefaultIp() {
     const ip = await AsyncStorage.getItem('ip');
-    return ip ?? '192.168.100.66';
+    return ip ?? 'cloudtree.local';
 }
 
 export async function getWebSocketPort() {
-    const port = await AsyncStorage.getItem('websocketPort');
+    const port = await AsyncStorage.getItem('wsPort');
     return port ?? '9001';
 }
 

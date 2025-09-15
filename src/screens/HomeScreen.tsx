@@ -1,18 +1,19 @@
 import React from "react";
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+// import { Button } from "react-native";
 
-function HomeScreen( { navigation } : { navigation: any } ) {
+// function HomeScreen( { navigation } : { navigation: any } ) {
 
-
+function HomeScreen() {
     return(
         <View style={styles.container}>
             <Text>Welcome!</Text>
-            <Button title="Go to Sensors!"
+            {/* <Button title="Go to Sensors!"
                 onPress={() => navigation.navigate('Sensors')}
             />
             <Button title="Go to About"
                 onPress={() => navigation.navigate('About')}
-            />
+            /> */}
         </View>
     );
 }
