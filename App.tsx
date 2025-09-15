@@ -6,18 +6,20 @@
  */
 
 import { StyleSheet, View } from 'react-native';
-import {
-  SafeAreaProvider,
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+// import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import HomeScreen from './src/screens/HomeScreen.tsx';
 import AboutScreen from './src/screens/AboutScreen.tsx';
 import SensorScreen from './src/screens/SensorScreen.jsx';
 
-const Stack = createNativeStackNavigator();
+// const Stack = createNativeStackNavigator();
+
+const Tab = createBottomTabNavigator();
 
 function App() {
 
@@ -33,7 +35,7 @@ function AppContent() {
   return (
     <View style={styles.container}>
       <NavigationContainer>
-        <Stack.Navigator>
+        {/* <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen}
             options={{ title: 'CloudTree' }}
           />
@@ -43,10 +45,17 @@ function AppContent() {
           <Stack.Screen name="About" component={AboutScreen}
             options={{ title: 'About' }}
           />
-        </Stack.Navigator>
+        </Stack.Navigator> */}
+        <Tab.Navigator>
+          <Tab.Screen name="Home" component={HomeScreen} /> 
+          <Tab.Screen name="Sensors" component={SensorScreen} />
+          <Tab.Screen name="About" component={AboutScreen} />
+        </Tab.Navigator>
       </NavigationContainer>
     </View>
   );
+
+  
 }
 
 const styles = StyleSheet.create({
