@@ -1,28 +1,19 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-export async function setDefaultIp(ip: string) {
-    await AsyncStorage.setItem('ip', ip);
-}
-
-export async function setWebSocketPort(port: string) {
-    await AsyncStorage.setItem('wsPort', port);
-}
-
-export async function setHttpPort(port: string) {
-    await AsyncStorage.setItem('httpPort', port);
-}
+// Reads native env variables provided by react-native-config
+// Expected keys (optional): DEFAULT_IP, WS_PORT, HTTP_PORT
+// Falls back to sensible defaults if not provided
+// Note: You still control runtime overrides via AsyncStorage setters below
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - typings depend on project setup
+import {DEFAULT_IP, WS_PORT, HTTP_PORT} from '@env';
 
 export async function getDefaultIp() {
-    const ip = await AsyncStorage.getItem('ip');
-    return ip ?? 'cloudtree.local';
+    return (DEFAULT_IP || 'cloudtree.local');
 }
 
 export async function getWebSocketPort() {
-    const port = await AsyncStorage.getItem('wsPort');
-    return port ?? '9001';
+    return (WS_PORT || '9001');
 }
 
 export async function getHttpPort() {
-    const port = await AsyncStorage.getItem('httpPort');
-    return port ?? '8000';
+    return (HTTP_PORT || '8000');
 }
