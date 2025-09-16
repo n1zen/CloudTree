@@ -56,5 +56,30 @@ export const sensorScreenStyles = StyleSheet.create({
         color: colors.info,
         padding: 20,
         borderRadius: 10,
-    }
+    },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: colors.bgLight,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    modalContent: {
+        width: '90%',
+        maxWidth: 600,
+        backgroundColor: colors.bgLight,
+        borderRadius: 12,
+        padding: 20,
+        gap: 16,
+        borderWidth: 1,
+        borderColor: colors.bgLight2,
+    },
+    textarea: {
+        height: 120,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: colors.bgDark,
+        borderRadius: 10,
+        textAlignVertical: 'top',
+    },
 });

@@ -7,7 +7,7 @@ export const radioButtonStyles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-evenly',
         gap: 20,
-        marginVertical: 20 
+        marginVertical: 5
     },
     buttonContainer: {
         flexDirection: 'row',

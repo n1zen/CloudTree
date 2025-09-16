@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, Modal } from 'react-native';
+import { View, Text, Button, Modal, TextInput} from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Paho from 'paho-mqtt';
 
@@ -19,6 +19,7 @@ export default function SensorScreen() {
     const [shouldConnect, setShouldConnect] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState('Disconnected');
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectAction, setSelectAction] = useState('Save');
     // // Replace with your Raspberry Pi's IP address
     // const IP = useRef(null);
     // const PORT = useRef(9001); // Replace with your WebSocket port
@@ -128,22 +129,68 @@ export default function SensorScreen() {
             </View>
             <Modal
                 animationType='slide'
-                transparent={false}
+                transparent={true}
                 visible={isModalVisible}
                 onRequestClose={() => setIsModalVisible(false)}
             >
-                <View style={{backgroundColor: colors.bgLight, alignItems: 'center', justifyContent: 'center'}}>
-                    <UpdateSaveRadio/>
+                <View style={sensorScreenStyles.modalContainer}>
+                    <View style={sensorScreenStyles.modalContent}>
+                        <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
+                        {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                    </View>
                 </View>
             </Modal>
         </View>
     );
 }
 
-function SaveScreen() {
+function Save({soilData, setIsModalVisible}) {
     return(
         <View>
-            
+            <Button
+                title="Save"
+                onPress={() => {
+                    console.log("Saved");
+                    setIsModalVisible(false);
+                }}
+            />
+            <Text>Latitude: Latitude</Text><Text>Longitude: Longitude</Text>
+            <Text>Soil Moisture: {soilData.moisture}</Text>
+            <Text>Soil Temperature: {soilData.temperature}</Text>
+            <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
+            <Text>pH Level: {soilData.phLevel}</Text>
+            <TextInput
+                multiline
+                placeholder="Type comments here..."
+                numberOfLines={4}
+                textAlignVertical="top"
+                style={sensorScreenStyles.textarea}
+            />
+        </View>
+    );
+}
+
+function Update({soilData, setIsModalVisible}) {
+    return(
+        <View>
+            <Button
+                title="Update"
+                onPress={() => {
+                    console.log("Updated");
+                    setIsModalVisible(false);
+                }}
+            />
+            <Text>Soil Moisture: {soilData.moisture}</Text>
+            <Text>Soil Temperature: {soilData.temperature}</Text>
+            <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
+            <Text>pH Level: {soilData.phLevel}</Text>
+            <TextInput
+                multiline
+                placeholder="Type comments here..."
+                numberOfLines={4}
+                textAlignVertical="top"
+                style={sensorScreenStyles.textarea}
+            />
         </View>
     );
 }
