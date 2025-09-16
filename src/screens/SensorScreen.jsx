@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, Button, Modal } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Paho from 'paho-mqtt';
 
-import { startDiscovery, stopDiscovery } from '../lib/udpService.js';
+import { colors } from '../assets/styles/Colors.ts';
+import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
 import { getDefaultIp, getWebSocketPort } from '../lib/config.ts';
+import UpdateSaveRadio from '../components/UpdateSaveRadio.tsx';
 
 export default function SensorScreen() {
 
@@ -15,17 +17,13 @@ export default function SensorScreen() {
         phLevel: 0
     });
     const [shouldConnect, setShouldConnect] = useState(false);
-    const [connectionStatus, setConnectionStatus] = useState('disconnected');
-
+    const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+    const [isModalVisible, setIsModalVisible] = useState(false);
     // // Replace with your Raspberry Pi's IP address
     // const IP = useRef(null);
     // const PORT = useRef(9001); // Replace with your WebSocket port
 
     useEffect(() => {
-        startDiscovery();
-        setTimeout(() => {
-            stopDiscovery();
-        }, 10000);
         let client;
         const clientId = 'client-' + Math.random().toString(16).slice(2);
         const connectClient = async () => {
@@ -42,7 +40,7 @@ export default function SensorScreen() {
                 client = new Paho.Client(wsUrl, clientId);
                 client.onConnectionLost = (response) => {
                     console.log('Connection lost:', response?.errorMessage);
-                    setConnectionStatus('disconnected');
+                    setConnectionStatus('Disconnected');
                 };
                 client.onMessageArrived = (data) => {
                     if (data.payloadString === 'Sensor Timeout or incomplete frame') {
@@ -68,17 +66,17 @@ export default function SensorScreen() {
                     timeout: 100,
                     onSuccess: () => {
                         console.log('Connected to MQTT broker');
-                        setConnectionStatus('connected');
+                        setConnectionStatus('Connected');
                         client.subscribe('get_data');
                     },
                     onFailure: (error) => {
                         console.log('Connection failed: ', error);
-                        setConnectionStatus('error');
+                        setConnectionStatus('Error');
                     }
                 });
             } catch (err) {
                 console.error('MQTT connect error:', err);
-                setConnectionStatus('error');
+                setConnectionStatus('Error');
             }
         };
         connectClient();
@@ -95,15 +93,57 @@ export default function SensorScreen() {
     }
 
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={sensorScreenStyles.mainContainer}>
             
-            <Text>Status: {connectionStatus}</Text>
-            <Text>Sensor Screen</Text>
-            <Text>Soil Moisture: {soilData.moisture}</Text>
-            <Text>Soil Temperature: {soilData.temperature}</Text>
-            <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
-            <Text>pH Level: {soilData.phLevel}</Text>
-            <Button title="Connect" onPress={connectToBroker} />
+            <View style={[connectionStatus === 'Connected' ? sensorScreenStyles.sdcSuccess :
+                connectionStatus === 'Error' ? sensorScreenStyles.sdcError :
+                sensorScreenStyles.sdcDisconnected,
+                    {backgroundColor: colors.bgLight2}
+                ]}>
+                <View style={sensorScreenStyles.sensorStatusContainer}>
+                    <Text>Connection Status: </Text>
+                    <Text style={[sensorScreenStyles.sensorStatusIndicator, {
+                        color: connectionStatus === 'Connected' ? colors.success :
+                            connectionStatus === 'Error' ? colors.danger :
+                            colors.warning
+                    }]}>{connectionStatus}</Text>
+                </View>
+                <Text>Soil Moisture: {soilData.moisture}</Text>
+                <Text>Soil Temperature: {soilData.temperature}</Text>
+                <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
+                <Text>pH Level: {soilData.phLevel}</Text>
+            </View>
+            <View style={sensorScreenStyles.actionsContainer}>
+                <Button
+                    title="Connect to Broker"
+                    onPress={connectToBroker}
+                    disabled={shouldConnect}
+                    style={sensorScreenStyles.button}
+                />
+                <Button
+                    title="Save"
+                    onPress={() => setIsModalVisible(true)}
+                    style={sensorScreenStyles.button}
+                />
+            </View>
+            <Modal
+                animationType='slide'
+                transparent={false}
+                visible={isModalVisible}
+                onRequestClose={() => setIsModalVisible(false)}
+            >
+                <View style={{backgroundColor: colors.bgLight, alignItems: 'center', justifyContent: 'center'}}>
+                    <UpdateSaveRadio/>
+                </View>
+            </Modal>
+        </View>
+    );
+}
+
+function SaveScreen() {
+    return(
+        <View>
+            
         </View>
     );
 }

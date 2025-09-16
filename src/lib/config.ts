@@ -1,11 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// import { startDiscovery, stopDiscovery } from './udpService.js';
+export async function setDefaultIp(ip: string) {
+    await AsyncStorage.setItem('ip', ip);
+}
 
-// startDiscovery();
-// setTimeout(() => {
-//     stopDiscovery();
-// }, 10000);
+export async function setWebSocketPort(port: string) {
+    await AsyncStorage.setItem('wsPort', port);
+}
+
+export async function setHttpPort(port: string) {
+    await AsyncStorage.setItem('httpPort', port);
+}
 
 export async function getDefaultIp() {
     const ip = await AsyncStorage.getItem('ip');
