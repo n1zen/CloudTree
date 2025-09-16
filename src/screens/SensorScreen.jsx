@@ -7,6 +7,7 @@ import { colors } from '../assets/styles/Colors.ts';
 import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
 import { getDefaultIp, getWebSocketPort } from '../lib/config.ts';
 import UpdateSaveRadio from '../components/UpdateSaveRadio.tsx';
+import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
 
 export default function SensorScreen() {
 
@@ -20,9 +21,6 @@ export default function SensorScreen() {
     const [connectionStatus, setConnectionStatus] = useState('Disconnected');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectAction, setSelectAction] = useState('Save');
-    // // Replace with your Raspberry Pi's IP address
-    // const IP = useRef(null);
-    // const PORT = useRef(9001); // Replace with your WebSocket port
 
     useEffect(() => {
         let client;
@@ -31,13 +29,11 @@ export default function SensorScreen() {
             
             if (!shouldConnect) return;
             try {
-                const ip = 'cloudtree.local';
-                // const portStr = await getWebSocketPort();
-                // const port = parseInt(portStr, 10) || 9001; // fallback to 9001 if conversion fails
-                const port = 9001;
+                const ip = await getDefaultIp();
+                const portStr = await getWebSocketPort();
+                const port = parseInt(portStr, 10) || 9001;
                 console.log('Connecting to IP:', ip, 'Port:', port);
                 const wsUrl = `ws://${ip}:${port}/`;
-                // const wsUrl = `ws://cloudtree.local:9001/`;
                 client = new Paho.Client(wsUrl, clientId);
                 client.onConnectionLost = (response) => {
                     console.log('Connection lost:', response?.errorMessage);
@@ -145,6 +141,35 @@ export default function SensorScreen() {
 }
 
 function Save({soilData, setIsModalVisible}) {
+    const [location, setLocation] = useState(null);
+    const [locationPermission, setLocationPermission] = useState(false);
+    const [locationError, setLocationError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [comments, setComments] = useState('');
+
+    useEffect(() => {
+        const getLocation = async () => {
+            setIsLoading(true);
+            try {
+                const permsGranted = await requestLocationPermission();
+                if (permsGranted) {
+                    const currentLoc = await getCurrentLocation();
+                    setLocation(currentLoc);
+                    setLocationPermission(true);
+                    setLocationError(null);
+                } else {
+                    setLocationPermission(false);
+                    setLocationError('Location permission denied');
+                }
+            } catch (error) {
+                setLocationPermission(false);
+                setLocationError(error.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        getLocation();
+    },[])
     return(
         <View>
             <Button
@@ -154,7 +179,10 @@ function Save({soilData, setIsModalVisible}) {
                     setIsModalVisible(false);
                 }}
             />
-            <Text>Latitude: Latitude</Text><Text>Longitude: Longitude</Text>
+            <Text>Latitude: {location?.latitude}</Text><Text>Longitude: {location?.longitude}</Text>
+            {isLoading && <Text>Loading...</Text>}
+            {locationError && <Text>Error: {locationError}</Text>}
+            {(!locationPermission && isLoading) && <Text>Location permission denied</Text>}
             <Text>Soil Moisture: {soilData.moisture}</Text>
             <Text>Soil Temperature: {soilData.temperature}</Text>
             <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
@@ -165,6 +193,8 @@ function Save({soilData, setIsModalVisible}) {
                 numberOfLines={4}
                 textAlignVertical="top"
                 style={sensorScreenStyles.textarea}
+                value={comments}
+                onChangeText={setComments}
             />
         </View>
     );
