@@ -8,6 +8,7 @@ import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
 import { getDefaultIp, getWebSocketPort } from '../lib/config.ts';
 import UpdateSaveRadio from '../components/UpdateSaveRadio.tsx';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
+import { saveSoilData } from '../lib/axios.ts';
 
 export default function SensorScreen() {
 
@@ -170,12 +171,23 @@ function Save({soilData, setIsModalVisible}) {
         }
         getLocation();
     },[])
+
+    const handleSave = async () => {
+        const newSoilData = {
+            ...soilData,
+            latitude: location?.latitude,
+            longitude: location?.longitude,
+            comments: comments
+        }
+        await saveSoilData(newSoilData);
+    };
     return(
         <View>
             <Button
                 title="Save"
                 onPress={() => {
                     console.log("Saved");
+                    handleSave();
                     setIsModalVisible(false);
                 }}
             />
