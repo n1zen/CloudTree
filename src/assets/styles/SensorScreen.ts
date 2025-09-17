@@ -82,4 +82,10 @@ export const sensorScreenStyles = StyleSheet.create({
         borderRadius: 10,
         textAlignVertical: 'top',
     },
+    soilIDInput: {
+        padding: 12,
+        borderWidth: 1,
+        borderColor: colors.bgDark,
+        borderRadius: 10,
+    },
 });

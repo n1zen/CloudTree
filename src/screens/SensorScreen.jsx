@@ -146,7 +146,8 @@ function Save({soilData, setIsModalVisible}) {
     const [locationPermission, setLocationPermission] = useState(false);
     const [locationError, setLocationError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [comments, setComments] = useState('');
+    const [comments, setComments] = useState('Comments');
+    const [soilName, setSoilName] = useState('Soil Name');
 
     useEffect(() => {
         const getLocation = async () => {
@@ -174,13 +175,24 @@ function Save({soilData, setIsModalVisible}) {
 
     const handleSave = async () => {
         const newSoilData = {
-            ...soilData,
-            latitude: location?.latitude,
-            longitude: location?.longitude,
-            comments: comments
-        }
-        await saveSoilData(newSoilData);
+            Soil: {
+                Soil_Name: soilName,
+                Loc_Latitude: location?.latitude,
+                Loc_Longitude: location?.longitude
+            },
+            Parameters: {
+                Hum: soilData.moisture,
+                Temp: soilData.temperature,
+                Ec: soilData.electricalConductivity,
+                Ph: soilData.phLevel,
+                Comments: comments
+            }
+        };
+        console.log('New soil data:', newSoilData);
+        const savedSoilData = await saveSoilData(newSoilData);
+        console.log('Saved soil data:', savedSoilData);
     };
+
     return(
         <View>
             <Button
@@ -190,6 +202,9 @@ function Save({soilData, setIsModalVisible}) {
                     handleSave();
                     setIsModalVisible(false);
                 }}
+            />
+            <TextInput placeholder="Soil Name" value={soilName} onChangeText={setSoilName} 
+                style={sensorScreenStyles.soilIDInput}
             />
             <Text>Latitude: {location?.latitude}</Text><Text>Longitude: {location?.longitude}</Text>
             {isLoading && <Text>Loading...</Text>}
@@ -213,6 +228,10 @@ function Save({soilData, setIsModalVisible}) {
 }
 
 function Update({soilData, setIsModalVisible}) {
+
+    const [soilID, setSoilID] = useState('SoilID');
+    const [comments, setComments] = useState('Comments');
+
     return(
         <View>
             <Button
@@ -221,6 +240,9 @@ function Update({soilData, setIsModalVisible}) {
                     console.log("Updated");
                     setIsModalVisible(false);
                 }}
+            />
+            <TextInput placeholder="Soil ID" value={soilID} onChangeText={setSoilID} 
+                style={sensorScreenStyles.soilIDInput}
             />
             <Text>Soil Moisture: {soilData.moisture}</Text>
             <Text>Soil Temperature: {soilData.temperature}</Text>
@@ -232,6 +254,8 @@ function Update({soilData, setIsModalVisible}) {
                 numberOfLines={4}
                 textAlignVertical="top"
                 style={sensorScreenStyles.textarea}
+                value={comments}
+                onChangeText={setComments}
             />
         </View>
     );
