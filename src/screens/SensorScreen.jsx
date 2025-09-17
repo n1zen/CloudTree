@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, Modal, TextInput} from 'react-native';
+import { View, Text, Button, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Paho from 'paho-mqtt';
 
@@ -8,6 +8,9 @@ import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
 import { getDefaultIp, getWebSocketPort } from '../lib/config.ts';
 import UpdateSaveRadio from '../components/UpdateSaveRadio.tsx';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
+import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
+import { useNavigation } from '@react-navigation/native';
+import StatusIndicator from '../components/StatusIndicator.tsx';
 
 export default function SensorScreen() {
 
@@ -105,10 +108,36 @@ export default function SensorScreen() {
                             colors.warning
                     }]}>{connectionStatus}</Text>
                 </View>
-                <Text>Soil Moisture: {soilData.moisture}</Text>
-                <Text>Soil Temperature: {soilData.temperature}</Text>
-                <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
-                <Text>pH Level: {soilData.phLevel}</Text>
+                <View style={sensorScreenStyles.cardsContainer}>
+                    <View style={sensorScreenStyles.card}>
+                        <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>{soilData.moisture}</Text>
+                            <StatusIndicator field="Hum" value={soilData.moisture} />
+                        </View>
+                    </View>
+                    <View style={sensorScreenStyles.card}>
+                        <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>{soilData.temperature}</Text>
+                            <StatusIndicator field="Temp" value={soilData.temperature} />
+                        </View>
+                    </View>
+                    <View style={sensorScreenStyles.card}>
+                        <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>{soilData.electricalConductivity}</Text>
+                            <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
+                        </View>
+                    </View>
+                    <View style={sensorScreenStyles.card}>
+                        <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>{soilData.phLevel}</Text>
+                            <StatusIndicator field="Ph" value={soilData.phLevel} />
+                        </View>
+                    </View>
+                </View>
             </View>
             <View style={sensorScreenStyles.actionsContainer}>
                 <Button
@@ -116,11 +145,13 @@ export default function SensorScreen() {
                     onPress={connectToBroker}
                     disabled={shouldConnect}
                     style={sensorScreenStyles.button}
+                    color={colors.primary}
                 />
                 <Button
                     title="Save"
                     onPress={() => setIsModalVisible(true)}
                     style={sensorScreenStyles.button}
+                    color={colors.primary}
                 />
             </View>
             <Modal
@@ -145,7 +176,9 @@ function Save({soilData, setIsModalVisible}) {
     const [locationPermission, setLocationPermission] = useState(false);
     const [locationError, setLocationError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [comments, setComments] = useState('');
+    const [comments, setComments] = useState('Comments');
+    const [soilName, setSoilName] = useState('Soil Name');
+    const navigation = useNavigation();
 
     useEffect(() => {
         const getLocation = async () => {
@@ -170,23 +203,93 @@ function Save({soilData, setIsModalVisible}) {
         }
         getLocation();
     },[])
+
+    const handleSave = async () => {
+        const newSoilData = {
+            Soil: {
+                Soil_Name: soilName,
+                Loc_Latitude: location?.latitude,
+                Loc_Longitude: location?.longitude
+            },
+            Parameters: {
+                Hum: soilData.moisture,
+                Temp: soilData.temperature,
+                Ec: soilData.electricalConductivity,
+                Ph: soilData.phLevel,
+                Comments: comments
+            }
+        };
+        console.log('New soil data:', newSoilData);
+        const savedSoilData = await saveSoilData(newSoilData);
+        console.log('Saved soil data:', savedSoilData);
+        Alert.alert('Soil saved successfully');
+        setIsModalVisible(false);
+        setComments('Comments');
+        navigation.navigate('Home');
+        setSoilName('Soil Name');
+    };
+
     return(
         <View>
             <Button
                 title="Save"
                 onPress={() => {
                     console.log("Saved");
+                    handleSave();
                     setIsModalVisible(false);
                 }}
+                color={colors.primary}
             />
-            <Text>Latitude: {location?.latitude}</Text><Text>Longitude: {location?.longitude}</Text>
+            <TextInput placeholder="Soil Name" value={soilName} onChangeText={setSoilName} 
+                style={sensorScreenStyles.soilIDInput}
+            />
+            <View style={sensorScreenStyles.cardsContainer}>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Latitude</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{location?.latitude ?? '-'}</Text>
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Longitude</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{location?.longitude ?? '-'}</Text>
+                    </View>
+                </View>
+            </View>
             {isLoading && <Text>Loading...</Text>}
             {locationError && <Text>Error: {locationError}</Text>}
             {(!locationPermission && isLoading) && <Text>Location permission denied</Text>}
-            <Text>Soil Moisture: {soilData.moisture}</Text>
-            <Text>Soil Temperature: {soilData.temperature}</Text>
-            <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
-            <Text>pH Level: {soilData.phLevel}</Text>
+            <View style={sensorScreenStyles.cardsContainer}>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.moisture}</Text>
+                        <StatusIndicator field="Hum" value={soilData.moisture} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.temperature}</Text>
+                        <StatusIndicator field="Temp" value={soilData.temperature} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.electricalConductivity}</Text>
+                        <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.phLevel}</Text>
+                        <StatusIndicator field="Ph" value={soilData.phLevel} />
+                    </View>
+                </View>
+            </View>
             <TextInput
                 multiline
                 placeholder="Type comments here..."
@@ -201,25 +304,121 @@ function Save({soilData, setIsModalVisible}) {
 }
 
 function Update({soilData, setIsModalVisible}) {
+
+    const [soilID, setSoilID] = useState('Select Soil ID');
+    const [soilName, setSoilName] = useState('Soil Name');
+    const [showPicker, setShowPicker] = useState(false);
+    const [comments, setComments] = useState('Comments');
+    const [soilIDList, setSoilIDList] = useState([]);
+    const navigation = useNavigation();
+
+    const handleUpdate = async () => {
+        const newParameterData = {
+            Soil_ID: idToNumber(soilID),
+            Parameters: {
+                Hum: soilData.moisture,
+                Temp: soilData.temperature,
+                Ec: soilData.electricalConductivity,
+                Ph: soilData.phLevel,
+                Comments: comments
+            }
+        }
+        console.log('New parameter data:', newParameterData);
+        const updatedParameterData = await saveParameterData(newParameterData);
+        console.log('Updated parameter data:', updatedParameterData);
+        Alert.alert('Parameter updated successfully');
+        setIsModalVisible(false);
+        setComments('Comments');
+        navigation.navigate('Home');
+    }
+
+    useEffect(() => {
+        const getSoilIDList = async () => {
+            const soilList = await getSoil();
+            setSoilIDList(soilList.map(soil => [soil.Soil_ID, soil.Soil_Name]));
+        }
+        getSoilIDList();
+    },[])
+
     return(
         <View>
             <Button
-                title="Update"
+                title="Update" 
                 onPress={() => {
                     console.log("Updated");
+                    handleUpdate();
                     setIsModalVisible(false);
                 }}
+                color={colors.primary}
             />
-            <Text>Soil Moisture: {soilData.moisture}</Text>
-            <Text>Soil Temperature: {soilData.temperature}</Text>
-            <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
-            <Text>pH Level: {soilData.phLevel}</Text>
+            <TouchableOpacity
+                onPress={() => setShowPicker(true)}
+                style={sensorScreenStyles.selectInput}
+            >
+                <Text style={sensorScreenStyles.selectInputText}>
+                    {soilID} - {soilName}
+                </Text>
+            </TouchableOpacity>
+            <Modal
+                visible={showPicker} transparent animationType="slide"
+            >
+                <View style={sensorScreenStyles.modalContainer}>
+                    <View style={sensorScreenStyles.modalContent}>
+                        <Text style={sensorScreenStyles.modalTitle}>Select Soil ID</Text>
+                        {soilIDList.map(([id, name]) => (
+                            <TouchableOpacity 
+                                key={id} 
+                                style={sensorScreenStyles.modalOption}
+                                onPress={() => {
+                                    setSoilID(id);
+                                    setSoilName(name);
+                                    setShowPicker(false);
+                                }}
+                            >
+                                <Text style={sensorScreenStyles.modalOptionText}>{id} - {name}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+            </Modal>
+            <View style={sensorScreenStyles.cardsContainer}>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.moisture}</Text>
+                        <StatusIndicator field="Hum" value={soilData.moisture} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.temperature}</Text>
+                        <StatusIndicator field="Temp" value={soilData.temperature} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.electricalConductivity}</Text>
+                        <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.card}>
+                    <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>{soilData.phLevel}</Text>
+                        <StatusIndicator field="Ph" value={soilData.phLevel} />
+                    </View>
+                </View>
+            </View>
             <TextInput
                 multiline
                 placeholder="Type comments here..."
                 numberOfLines={4}
                 textAlignVertical="top"
                 style={sensorScreenStyles.textarea}
+                value={comments}
+                onChangeText={setComments}
             />
         </View>
     );

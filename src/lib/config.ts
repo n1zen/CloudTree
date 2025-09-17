@@ -6,14 +6,14 @@
 // @ts-ignore - typings depend on project setup
 import {DEFAULT_IP, WS_PORT, HTTP_PORT} from '@env';
 
-export async function getDefaultIp() {
+export function getDefaultIp() {
     return (DEFAULT_IP || 'cloudtree.local');
 }
 
-export async function getWebSocketPort() {
+export function getWebSocketPort() {
     return (WS_PORT || '9001');
 }
 
-export async function getHttpPort() {
+export function getHttpPort() {
     return (HTTP_PORT || '8000');
 }
