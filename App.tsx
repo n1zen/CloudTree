@@ -5,19 +5,21 @@
  * @format
  */
 
-import { StyleSheet, View } from 'react-native';
+import { View, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { NavigationContainer } from '@react-navigation/native';
-// import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { TvMinimalIcon, LeafIcon, InfoIcon } from 'lucide-react-native';
 
-import HomeScreen from './src/screens/HomeScreen.tsx';
-import AboutScreen from './src/screens/AboutScreen.tsx';
-import SensorScreen from './src/screens/SensorScreen.jsx';
+import DashboardStack from './src/navigation/DashboardStack.tsx';
+import SensorStack from './src/navigation/SensorStack.tsx';
+import AboutStack from './src/navigation/AboutStack.tsx';
 
-// const Stack = createNativeStackNavigator();
+import { appStyles, tabBarColors } from './src/assets/styles/AppStyles.ts';
+import { colors } from './src/assets/styles/Colors.ts';
+import CloudTreeIcon from './src/components/CloudTreeIcon.tsx';
 
 const Tab = createBottomTabNavigator();
 
@@ -33,23 +35,70 @@ function App() {
 function AppContent() {
 
   return (
-    <View style={styles.container}>
+    <View style={appStyles.container}>
       <NavigationContainer>
-        {/* <Stack.Navigator>
-          <Stack.Screen name="Home" component={HomeScreen}
-            options={{ title: 'CloudTree' }}
-          />
-          <Stack.Screen name="Sensors" component={SensorScreen}
-            options={{ title: 'Sensors' }}
-          />
-          <Stack.Screen name="About" component={AboutScreen}
-            options={{ title: 'About' }}
-          />
-        </Stack.Navigator> */}
-        <Tab.Navigator>
-          <Tab.Screen name="Home" component={HomeScreen} /> 
-          <Tab.Screen name="Sensors" component={SensorScreen} />
-          <Tab.Screen name="About" component={AboutScreen} />
+        <Tab.Navigator
+          screenOptions={{
+            tabBarStyle: appStyles.tabBarStyle,
+            tabBarLabelStyle: appStyles.tabBarLabelStyle,
+            tabBarActiveTintColor: tabBarColors.activeTintColor,
+            tabBarInactiveTintColor: tabBarColors.inactiveTintColor,
+            headerStyle: {
+              backgroundColor: colors.bgDark,
+              borderBottomColor: colors.primary,
+              borderBottomWidth: 2,
+            },
+            headerTitleStyle: {
+              color: colors.light,
+              fontWeight: 'bold',
+            },
+          }}
+        >
+            <Tab.Screen 
+              name="HomeScreen" 
+              component={DashboardStack}
+              options={{
+                tabBarIcon: ({ color }) => (
+                  <TvMinimalIcon size={24} color={color} />
+                ),
+                headerTitle: () => (
+                  <View style={appStyles.headerTitleContainer}>
+                    <CloudTreeIcon size={60} color={colors.light} />
+                  </View>
+                ),
+              }}
+            /> 
+            <Tab.Screen 
+              name="Sensor" 
+              component={SensorStack}
+              options={{
+                tabBarIcon: ({ color }) => (
+                  <LeafIcon size={24} color={color} />
+                ),
+                headerTitle: () => (
+                  <View style={appStyles.headerTitleContainer}>
+                    <LeafIcon size={24} color={colors.light} />
+                    <Text style={appStyles.headerTitleStyle}>Sensor</Text>
+                  </View>
+                )
+              }}
+            />
+            <Tab.Screen 
+              name="About CloudTree" 
+              component={AboutStack}
+              options={{
+                tabBarIcon: ({ color }) => (
+                  <InfoIcon size={24} color={color} />
+                ),
+                headerTitle: () => (
+                  <View style={appStyles.headerTitleContainer}>
+                    <InfoIcon size={24} color={colors.light} />
+                    <Text style={appStyles.headerTitleStyle}>About CloudTree</Text>
+                  </View>
+                ),
+                tabBarLabel: 'About',
+              }}
+            />
         </Tab.Navigator>
       </NavigationContainer>
     </View>
@@ -57,11 +106,5 @@ function AppContent() {
 
   
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, Modal, TextInput} from 'react-native';
+import { View, Text, Button, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Paho from 'paho-mqtt';
 
@@ -8,7 +8,8 @@ import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
 import { getDefaultIp, getWebSocketPort } from '../lib/config.ts';
 import UpdateSaveRadio from '../components/UpdateSaveRadio.tsx';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
-import { saveSoilData } from '../lib/axios.ts';
+import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SensorScreen() {
 
@@ -117,11 +118,13 @@ export default function SensorScreen() {
                     onPress={connectToBroker}
                     disabled={shouldConnect}
                     style={sensorScreenStyles.button}
+                    color={colors.primary}
                 />
                 <Button
                     title="Save"
                     onPress={() => setIsModalVisible(true)}
                     style={sensorScreenStyles.button}
+                    color={colors.primary}
                 />
             </View>
             <Modal
@@ -148,6 +151,7 @@ function Save({soilData, setIsModalVisible}) {
     const [isLoading, setIsLoading] = useState(false);
     const [comments, setComments] = useState('Comments');
     const [soilName, setSoilName] = useState('Soil Name');
+    const navigation = useNavigation();
 
     useEffect(() => {
         const getLocation = async () => {
@@ -191,6 +195,11 @@ function Save({soilData, setIsModalVisible}) {
         console.log('New soil data:', newSoilData);
         const savedSoilData = await saveSoilData(newSoilData);
         console.log('Saved soil data:', savedSoilData);
+        Alert.alert('Soil saved successfully');
+        setIsModalVisible(false);
+        setComments('Comments');
+        navigation.navigate('Home');
+        setSoilName('Soil Name');
     };
 
     return(
@@ -202,6 +211,7 @@ function Save({soilData, setIsModalVisible}) {
                     handleSave();
                     setIsModalVisible(false);
                 }}
+                color={colors.primary}
             />
             <TextInput placeholder="Soil Name" value={soilName} onChangeText={setSoilName} 
                 style={sensorScreenStyles.soilIDInput}
@@ -230,20 +240,79 @@ function Save({soilData, setIsModalVisible}) {
 function Update({soilData, setIsModalVisible}) {
 
     const [soilID, setSoilID] = useState('SoilID');
+    const [showPicker, setShowPicker] = useState(false);
     const [comments, setComments] = useState('Comments');
+    const [soilIDList, setSoilIDList] = useState([]);
+    const navigation = useNavigation();
+
+    const handleUpdate = async () => {
+        const newParameterData = {
+            Soil_ID: idToNumber(soilID),
+            Parameters: {
+                Hum: soilData.moisture,
+                Temp: soilData.temperature,
+                Ec: soilData.electricalConductivity,
+                Ph: soilData.phLevel,
+                Comments: comments
+            }
+        }
+        console.log('New parameter data:', newParameterData);
+        const updatedParameterData = await saveParameterData(newParameterData);
+        console.log('Updated parameter data:', updatedParameterData);
+        Alert.alert('Parameter updated successfully');
+        setIsModalVisible(false);
+        setComments('Comments');
+        navigation.navigate('Home');
+    }
+
+    useEffect(() => {
+        const getSoilIDList = async () => {
+            const soilList = await getSoil();
+            setSoilIDList(soilList.map(soil => soil.Soil_ID));
+        }
+        getSoilIDList();
+    },[])
 
     return(
         <View>
             <Button
-                title="Update"
+                title="Update" 
                 onPress={() => {
                     console.log("Updated");
+                    handleUpdate();
                     setIsModalVisible(false);
                 }}
+                color={colors.primary}
             />
-            <TextInput placeholder="Soil ID" value={soilID} onChangeText={setSoilID} 
-                style={sensorScreenStyles.soilIDInput}
-            />
+            <TouchableOpacity
+                onPress={() => setShowPicker(true)}
+                style={sensorScreenStyles.selectInput}
+            >
+                <Text style={sensorScreenStyles.selectInputText}>
+                    {soilID || 'Select Soil ID'}
+                </Text>
+            </TouchableOpacity>
+            <Modal
+                visible={showPicker} transparent animationType="slide"
+            >
+                <View style={sensorScreenStyles.modalContainer}>
+                    <View style={sensorScreenStyles.modalContent}>
+                        <Text style={sensorScreenStyles.modalTitle}>Select Soil ID</Text>
+                        {soilIDList.map((id) => (
+                            <TouchableOpacity 
+                                key={id} 
+                                style={sensorScreenStyles.modalOption}
+                                onPress={() => {
+                                    setSoilID(id);
+                                    setShowPicker(false);
+                                }}
+                            >
+                                <Text style={sensorScreenStyles.modalOptionText}>{id}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+            </Modal>
             <Text>Soil Moisture: {soilData.moisture}</Text>
             <Text>Soil Temperature: {soilData.temperature}</Text>
             <Text>Electrical Conductivity: {soilData.electricalConductivity}</Text>
