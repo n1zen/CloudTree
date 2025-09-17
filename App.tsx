@@ -83,7 +83,7 @@ function AppContent() {
                 )
               }}
             />
-            <Tab.Screen 
+            {/* <Tab.Screen 
               name="About CloudTree" 
               component={AboutStack}
               options={{
@@ -98,7 +98,7 @@ function AppContent() {
                 ),
                 tabBarLabel: 'About',
               }}
-            />
+            /> */}
         </Tab.Navigator>
       </NavigationContainer>
     </View>

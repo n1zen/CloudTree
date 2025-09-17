@@ -106,6 +106,7 @@ export const sensorScreenStyles = StyleSheet.create({
         elevation: 5,
     },
     textarea: {
+        marginVertical: 12,
         height: 120,
         padding: 12,
         borderWidth: 2,
@@ -116,6 +117,7 @@ export const sensorScreenStyles = StyleSheet.create({
         fontSize: 16,
     },
     soilIDInput: {
+        marginVertical: 12,
         padding: 12,
         borderWidth: 2,
         borderColor: colors.secondary,
@@ -124,6 +126,7 @@ export const sensorScreenStyles = StyleSheet.create({
         fontSize: 16,
     },
     selectInput: {
+        marginVertical: 12,
         padding: 12,
         borderWidth: 2,
         borderColor: colors.secondary,
@@ -156,5 +159,43 @@ export const sensorScreenStyles = StyleSheet.create({
         color: colors.dark,
         marginBottom: 16,
         textAlign: 'center',
+    },
+    sensorDataContainer: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    cardsContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginTop: 12,
+    },
+    card: {
+        width: '48%',
+        backgroundColor: colors.bgLight,
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 12,
+        borderWidth: 2,
+        borderColor: colors.secondary,
+        shadowColor: colors.dark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+        minHeight: 96,
+        justifyContent: 'space-between',
+    },
+    cardHeader: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: colors.dark,
+        marginBottom: 6,
+    },
+    cardRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
 });
