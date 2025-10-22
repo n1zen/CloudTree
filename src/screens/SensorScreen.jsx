@@ -18,7 +18,10 @@ export default function SensorScreen() {
         moisture: 0,
         temperature: 0,
         electricalConductivity: 0,
-        phLevel: 0
+        phLevel: 0,
+        nitrogen: 0,
+        phosphorus: 0,
+        potassium: 0
     });
     const [shouldConnect, setShouldConnect] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState('Disconnected');
@@ -54,7 +57,10 @@ export default function SensorScreen() {
                             moisture: soilDataJson.Moist,
                             temperature: soilDataJson.Temp,
                             electricalConductivity: soilDataJson.EC,
-                            phLevel: soilDataJson.pH
+                            phLevel: soilDataJson.pH,
+                            nitrogen: soilDataJson.nitrogen,
+                            phosphorus: soilDataJson.phosphorus,
+                            potassium: soilDataJson.potassium
                         }));
                         console.log('message arrived:', data.payloadString);
                     } catch (error) {
@@ -135,6 +141,21 @@ export default function SensorScreen() {
                         <View style={sensorScreenStyles.cardRow}>
                             <Text>{soilData.phLevel}</Text>
                             <StatusIndicator field="Ph" value={soilData.phLevel} />
+                        </View>
+                    </View>
+                    <View style={sensorScreenStyles.npkCard}>
+                        <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>N: {soilData.nitrogen}</Text>
+                            <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
+                        </View>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>P: {soilData.phosphorus}</Text>
+                            <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
+                        </View>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>K: {soilData.potassium}</Text>
+                            <StatusIndicator field="Potassium" value={soilData.potassium} />
                         </View>
                     </View>
                 </View>
