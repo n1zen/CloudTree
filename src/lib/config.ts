@@ -15,5 +15,5 @@ export function getWebSocketPort() {
 }
 
 export function getHttpPort() {
-    return (HTTP_PORT || '8000');
+    return (HTTP_PORT || '8080');
 }
