@@ -97,49 +97,70 @@ export default function SoilDetailsScreen() {
                      </View>
                      {latestParameter && (
                          <View key={`latest-${latestParameter.Parameter_ID}`} style={dashboardStyles.card}>
-                             <Text style={dashboardStyles.cardHeader}>Latest Reading</Text>
-                             <View style={dashboardStyles.fieldRow}>
+                            <Text style={dashboardStyles.cardHeader}>Latest Reading</Text>
+                            <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>ID</Text>
                                 <Text style={dashboardStyles.fieldValue}>{latestParameter.Parameter_ID}</Text>
                              </View>
-                             <View style={dashboardStyles.fieldRow}>
+                            <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Hum</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Hum}</Text>
                                     <StatusIndicator field="Hum" value={latestParameter.Hum} />
                                 </View>
                             </View>
-                             <View style={dashboardStyles.fieldRow}>
+                            <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Temp</Text>   
                                 <View style={{flexDirection: 'row', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Temp}</Text>
                                     <StatusIndicator field="Temp" value={latestParameter.Temp} />
                                 </View>
                             </View>
-                             <View style={dashboardStyles.fieldRow}>
+                            <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Ec</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Ec}</Text>
                                     <StatusIndicator field="Ec" value={latestParameter.Ec} />
                                 </View>
                             </View>
-                             <View style={dashboardStyles.fieldRow}>
+                            <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Ph</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Ph}</Text>
                                     <StatusIndicator field="Ph" value={latestParameter.Ph} />
                                 </View>
                             </View>
-                             <View style={dashboardStyles.fieldRow}>
-                                 <Text style={dashboardStyles.fieldLabel}>Comments</Text>
-                                 <TextInput style={dashboardStyles.textareaReadOnly} value={latestParameter.Comments} editable={false} multiline />
-                             </View>
+                            <View style={dashboardStyles.fieldRow}>
+                                <Text style={dashboardStyles.fieldLabel}>Nitrogen</Text>
+                                <View style={{flexDirection: 'row', gap: 8}}>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Nitrogen}</Text>
+                                    <StatusIndicator field="Nitrogen" value={latestParameter.Nitrogen} />
+                                </View>
+                            </View>
+                            <View style={dashboardStyles.fieldRow}>
+                                <Text style={dashboardStyles.fieldLabel}>Phosphorus</Text>
+                                <View style={{flexDirection: 'row', gap: 8}}>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Phosphorus}</Text>
+                                    <StatusIndicator field="Phosphorus" value={latestParameter.Phosphorus} />
+                                </View>
+                            </View>
+                            <View style={dashboardStyles.fieldRow}>
+                                <Text style={dashboardStyles.fieldLabel}>Potassium</Text>
+                                <View style={{flexDirection: 'row', gap: 8}}>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Potassium}</Text>
+                                    <StatusIndicator field="Potassium" value={latestParameter.Potassium} />
+                                </View>
+                            </View>
+                            <View style={dashboardStyles.fieldRow}>
+                                <Text style={dashboardStyles.fieldLabel}>Comments</Text>
+                                <TextInput style={dashboardStyles.textareaReadOnly} value={latestParameter.Comments} editable={false} multiline />
+                            </View>
                              <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Recorded</Text>
                                 <Text style={dashboardStyles.fieldValue}>{latestParameter.Date_Recorded}</Text></View>
-                             <View style={dashboardStyles.actionBar}>
-                                 <Button title="Delete" onPress={() => handleDelete(latestParameter.Parameter_ID)} color={colors.danger} />
-                             </View>
+                            <View style={dashboardStyles.actionBar}>
+                                <Button title="Delete" onPress={() => handleDelete(latestParameter.Parameter_ID)} color={colors.danger} />
+                            </View>
                          </View>
                      )}
                  </View>
@@ -167,8 +188,8 @@ export default function SoilDetailsScreen() {
 
 function TableComponent({parametersData, onRowPress}: {parametersData: ParameterList[]; onRowPress?: (parameter: ParameterList) => void}) {
 
-    const header = ['Parameter ID', 'Hum', 'Temp', 'Ec', 'Ph', 'Comments', 'Date Recorded']
-    const widthArr = [130, 90, 90, 90, 90, 240, 220]
+    const header = ['Parameter ID', 'Date Recorded'] 
+    const widthArr = [130, 220]
     const tableWidth = widthArr.reduce((sum, w) => sum + w, 0)
     const screenWidth = Dimensions.get('window').width
 
@@ -176,12 +197,12 @@ function TableComponent({parametersData, onRowPress}: {parametersData: Parameter
         <Table style={[dashboardStyles.table, { width: tableWidth }]} borderStyle={{ borderWidth: 1, borderColor: '#4a7c59' }}>
             <Row data={header} widthArr={widthArr} style={dashboardStyles.tableHeader} textStyle={dashboardStyles.tableHeaderText} />
             {parametersData.length === 0 ? (
-                <Row data={["", "", "", "", "", "", ""]} widthArr={widthArr} style={dashboardStyles.tableRow} />
+                <Row data={["", ""]} widthArr={widthArr} style={dashboardStyles.tableRow} />
             ) : (
                 parametersData.map((parameter, idx) => (
                     <TouchableOpacity key={parameter.Parameter_ID} activeOpacity={0.6} onPress={() => onRowPress?.(parameter)}>
                         <Row
-                            data={[parameter.Parameter_ID, parameter.Hum, parameter.Temp, parameter.Ec, parameter.Ph, parameter.Comments, parameter.Date_Recorded]}
+                            data={[parameter.Parameter_ID, parameter.Date_Recorded]}
                             widthArr={widthArr}
                             style={idx % 2 === 0 ? dashboardStyles.tableRow : dashboardStyles.tableRowAlt}
                             textStyle={dashboardStyles.tableRowText}
