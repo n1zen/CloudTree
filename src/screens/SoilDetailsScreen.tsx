@@ -105,49 +105,49 @@ export default function SoilDetailsScreen() {
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Hum</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Hum}</Text>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Hum} %</Text>
                                     <StatusIndicator field="Hum" value={latestParameter.Hum} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Temp</Text>   
                                 <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Temp}</Text>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Temp} °C</Text>
                                     <StatusIndicator field="Temp" value={latestParameter.Temp} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Ec</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Ec}</Text>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Ec} us/cm</Text>
                                     <StatusIndicator field="Ec" value={latestParameter.Ec} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Ph</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Ph}</Text>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Ph} pH</Text>
                                     <StatusIndicator field="Ph" value={latestParameter.Ph} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Nitrogen</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Nitrogen}</Text>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Nitrogen} mg/kg</Text>
                                     <StatusIndicator field="Nitrogen" value={latestParameter.Nitrogen} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Phosphorus</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Phosphorus}</Text>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Phosphorus} mg/kg</Text>
                                     <StatusIndicator field="Phosphorus" value={latestParameter.Phosphorus} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Potassium</Text>
                                 <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Potassium}</Text>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Potassium} mg/kg</Text>
                                     <StatusIndicator field="Potassium" value={latestParameter.Potassium} />
                                 </View>
                             </View>
