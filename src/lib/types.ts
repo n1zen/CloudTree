@@ -13,6 +13,9 @@ export type ParameterList = {
     Temp: number,
     Ec: number,
     Ph: number,
+    Nitrogen: number,
+    Phosphorus: number,
+    Potassium: number,
     Comments: string,
     Date_Recorded: string
 }
@@ -29,6 +32,9 @@ export type ParameterRequest = {
     Temp: number,
     Ec: number,
     Ph: number,
+    Nitrogen: number,
+    Phosphorus: number,
+    Potassium: number,
     Comments: string
 }
 

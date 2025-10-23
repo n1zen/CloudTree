@@ -48,6 +48,36 @@ export default function StatusIndicator({ field, value }: { field: string, value
             setStatus('Alkaline');
             setColor(colors.danger);
         }
+        if (field === 'Nitrogen' && value < 40) {
+            setStatus('Low');
+            setColor(colors.danger);
+        } else if (field === 'Nitrogen' && value > 40 && value < 100) {
+            setStatus('Optimal');
+            setColor(colors.success);
+        } else if (field === 'Nitrogen' && value > 100) {
+            setStatus('High');
+            setColor(colors.danger);
+        }
+        if (field === 'Phosphorus' && value < 12) {
+            setStatus('Low');
+            setColor(colors.danger);
+        } else if (field === 'Phosphorus' && value > 12 && value < 25) {
+            setStatus('Optimal');
+            setColor(colors.success);
+        } else if (field === 'Phosphorus' && value > 30) {
+            setStatus('High');
+            setColor(colors.danger);
+        }
+        if (field === 'Potassium' && value < 120) {
+            setStatus('Low');
+            setColor(colors.danger);
+        } else if (field === 'Potassium' && value > 120 && value < 250) {
+            setStatus('Optimal');
+            setColor(colors.success);
+        } else if (field === 'Potassium' && value > 250) {
+            setStatus('High');
+            setColor(colors.danger);
+        }
     }, [field, value])
     return (
         <View>

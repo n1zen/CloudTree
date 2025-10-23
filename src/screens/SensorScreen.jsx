@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Button, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Paho from 'paho-mqtt';
 
@@ -18,7 +18,10 @@ export default function SensorScreen() {
         moisture: 0,
         temperature: 0,
         electricalConductivity: 0,
-        phLevel: 0
+        phLevel: 0,
+        nitrogen: 0,
+        phosphorus: 0,
+        potassium: 0
     });
     const [shouldConnect, setShouldConnect] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState('Disconnected');
@@ -54,7 +57,10 @@ export default function SensorScreen() {
                             moisture: soilDataJson.Moist,
                             temperature: soilDataJson.Temp,
                             electricalConductivity: soilDataJson.EC,
-                            phLevel: soilDataJson.pH
+                            phLevel: soilDataJson.pH,
+                            nitrogen: soilDataJson.nitrogen,
+                            phosphorus: soilDataJson.phosphorus,
+                            potassium: soilDataJson.potassium
                         }));
                         console.log('message arrived:', data.payloadString);
                     } catch (error) {
@@ -112,29 +118,44 @@ export default function SensorScreen() {
                     <View style={sensorScreenStyles.card}>
                         <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
                         <View style={sensorScreenStyles.cardRow}>
-                            <Text>{soilData.moisture}</Text>
+                            <Text>{soilData.moisture} %</Text>
                             <StatusIndicator field="Hum" value={soilData.moisture} />
                         </View>
                     </View>
                     <View style={sensorScreenStyles.card}>
                         <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
                         <View style={sensorScreenStyles.cardRow}>
-                            <Text>{soilData.temperature}</Text>
+                            <Text>{soilData.temperature} °C</Text>
                             <StatusIndicator field="Temp" value={soilData.temperature} />
                         </View>
                     </View>
                     <View style={sensorScreenStyles.card}>
                         <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
                         <View style={sensorScreenStyles.cardRow}>
-                            <Text>{soilData.electricalConductivity}</Text>
+                            <Text>{soilData.electricalConductivity} us/cm</Text>
                             <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
                         </View>
                     </View>
                     <View style={sensorScreenStyles.card}>
                         <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
                         <View style={sensorScreenStyles.cardRow}>
-                            <Text>{soilData.phLevel}</Text>
+                            <Text>{soilData.phLevel} pH</Text>
                             <StatusIndicator field="Ph" value={soilData.phLevel} />
+                        </View>
+                    </View>
+                    <View style={sensorScreenStyles.npkCard}>
+                        <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>N: {soilData.nitrogen} mg/kg</Text>
+                            <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
+                        </View>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>P: {soilData.phosphorus} mg/kg</Text>
+                            <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
+                        </View>
+                        <View style={sensorScreenStyles.cardRow}>
+                            <Text>K: {soilData.potassium} mg/kg</Text>
+                            <StatusIndicator field="Potassium" value={soilData.potassium} />
                         </View>
                     </View>
                 </View>
@@ -160,12 +181,14 @@ export default function SensorScreen() {
                 visible={isModalVisible}
                 onRequestClose={() => setIsModalVisible(false)}
             >
-                <View style={sensorScreenStyles.modalContainer}>
-                    <View style={sensorScreenStyles.modalContent}>
-                        <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
-                        {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                <ScrollView>
+                    <View style={sensorScreenStyles.modalContainer}>
+                        <View style={sensorScreenStyles.modalContent}>
+                            <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
+                            {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                        </View>
                     </View>
-                </View>
+                </ScrollView>
             </Modal>
         </View>
     );
@@ -216,6 +239,9 @@ function Save({soilData, setIsModalVisible}) {
                 Temp: soilData.temperature,
                 Ec: soilData.electricalConductivity,
                 Ph: soilData.phLevel,
+                Nitrogen: soilData.nitrogen,
+                Phosphorus: soilData.phosphorus,
+                Potassium: soilData.potassium,
                 Comments: comments
             }
         };
@@ -264,29 +290,44 @@ function Save({soilData, setIsModalVisible}) {
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.moisture}</Text>
+                        <Text>{soilData.moisture} %</Text>
                         <StatusIndicator field="Hum" value={soilData.moisture} />
                     </View>
                 </View>
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.temperature}</Text>
+                        <Text>{soilData.temperature} °C</Text>
                         <StatusIndicator field="Temp" value={soilData.temperature} />
                     </View>
                 </View>
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.electricalConductivity}</Text>
+                        <Text>{soilData.electricalConductivity} us/cm</Text>
                         <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
                     </View>
                 </View>
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.phLevel}</Text>
+                        <Text>{soilData.phLevel} pH</Text>
                         <StatusIndicator field="Ph" value={soilData.phLevel} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.npkCard}>
+                    <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>N: {soilData.nitrogen} mg/kg</Text>
+                        <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>P: {soilData.phosphorus} mg/kg</Text>
+                        <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>K: {soilData.potassium} mg/kg</Text>
+                        <StatusIndicator field="Potassium" value={soilData.potassium} />
                     </View>
                 </View>
             </View>
@@ -320,6 +361,9 @@ function Update({soilData, setIsModalVisible}) {
                 Temp: soilData.temperature,
                 Ec: soilData.electricalConductivity,
                 Ph: soilData.phLevel,
+                Nitrogen: soilData.nitrogen,
+                Phosphorus: soilData.phosphorus,
+                Potassium: soilData.potassium,
                 Comments: comments
             }
         }
@@ -385,29 +429,44 @@ function Update({soilData, setIsModalVisible}) {
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.moisture}</Text>
+                        <Text>{soilData.moisture} %</Text>
                         <StatusIndicator field="Hum" value={soilData.moisture} />
                     </View>
                 </View>
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.temperature}</Text>
+                        <Text>{soilData.temperature} °C</Text>
                         <StatusIndicator field="Temp" value={soilData.temperature} />
                     </View>
                 </View>
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.electricalConductivity}</Text>
+                        <Text>{soilData.electricalConductivity} us/cm</Text>
                         <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
                     </View>
                 </View>
                 <View style={sensorScreenStyles.card}>
                     <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
                     <View style={sensorScreenStyles.cardRow}>
-                        <Text>{soilData.phLevel}</Text>
+                        <Text>{soilData.phLevel} pH</Text>
                         <StatusIndicator field="Ph" value={soilData.phLevel} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.npkCard}>
+                    <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>N: {soilData.nitrogen} mg/kg</Text>
+                        <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>P: {soilData.phosphorus} mg/kg</Text>
+                        <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>K: {soilData.potassium} mg/kg</Text>
+                        <StatusIndicator field="Potassium" value={soilData.potassium} />
                     </View>
                 </View>
             </View>
