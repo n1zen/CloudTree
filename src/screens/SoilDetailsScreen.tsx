@@ -165,7 +165,7 @@ export default function SoilDetailsScreen() {
                      )}
                  </View>
                  <View style={dashboardStyles.section}>
-                    <Text style={dashboardStyles.title}>Previous Readings</Text>
+                    <Text style={dashboardStyles.title}>Readings List</Text>
                     <ScrollView
                         horizontal
                         nestedScrollEnabled

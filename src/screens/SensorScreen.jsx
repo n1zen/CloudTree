@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Button, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Paho from 'paho-mqtt';
 
@@ -181,12 +181,14 @@ export default function SensorScreen() {
                 visible={isModalVisible}
                 onRequestClose={() => setIsModalVisible(false)}
             >
-                <View style={sensorScreenStyles.modalContainer}>
-                    <View style={sensorScreenStyles.modalContent}>
-                        <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
-                        {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                <ScrollView>
+                    <View style={sensorScreenStyles.modalContainer}>
+                        <View style={sensorScreenStyles.modalContent}>
+                            <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
+                            {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                        </View>
                     </View>
-                </View>
+                </ScrollView>
             </Modal>
         </View>
     );
