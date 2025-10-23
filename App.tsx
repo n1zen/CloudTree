@@ -15,7 +15,7 @@ import { TvMinimalIcon, LeafIcon, InfoIcon } from 'lucide-react-native';
 
 import DashboardStack from './src/navigation/DashboardStack.tsx';
 import SensorStack from './src/navigation/SensorStack.tsx';
-import AboutStack from './src/navigation/AboutStack.tsx';
+import InfoStack from './src/navigation/InfoStack.tsx';
 
 import { appStyles, tabBarColors } from './src/assets/styles/AppStyles.ts';
 import { colors } from './src/assets/styles/Colors.ts';
