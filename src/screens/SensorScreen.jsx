@@ -237,6 +237,9 @@ function Save({soilData, setIsModalVisible}) {
                 Temp: soilData.temperature,
                 Ec: soilData.electricalConductivity,
                 Ph: soilData.phLevel,
+                Nitrogen: soilData.nitrogen,
+                Phosphorus: soilData.phosphorus,
+                Potassium: soilData.potassium,
                 Comments: comments
             }
         };
@@ -310,6 +313,21 @@ function Save({soilData, setIsModalVisible}) {
                         <StatusIndicator field="Ph" value={soilData.phLevel} />
                     </View>
                 </View>
+                <View style={sensorScreenStyles.npkCard}>
+                    <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>N: {soilData.nitrogen}</Text>
+                        <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>P: {soilData.phosphorus}</Text>
+                        <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>K: {soilData.potassium}</Text>
+                        <StatusIndicator field="Potassium" value={soilData.potassium} />
+                    </View>
+                </View>
             </View>
             <TextInput
                 multiline
@@ -341,6 +359,9 @@ function Update({soilData, setIsModalVisible}) {
                 Temp: soilData.temperature,
                 Ec: soilData.electricalConductivity,
                 Ph: soilData.phLevel,
+                Nitrogen: soilData.nitrogen,
+                Phosphorus: soilData.phosphorus,
+                Potassium: soilData.potassium,
                 Comments: comments
             }
         }
@@ -429,6 +450,21 @@ function Update({soilData, setIsModalVisible}) {
                     <View style={sensorScreenStyles.cardRow}>
                         <Text>{soilData.phLevel}</Text>
                         <StatusIndicator field="Ph" value={soilData.phLevel} />
+                    </View>
+                </View>
+                <View style={sensorScreenStyles.npkCard}>
+                    <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>N: {soilData.nitrogen}</Text>
+                        <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>P: {soilData.phosphorus}</Text>
+                        <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
+                    </View>
+                    <View style={sensorScreenStyles.cardRow}>
+                        <Text>K: {soilData.potassium}</Text>
+                        <StatusIndicator field="Potassium" value={soilData.potassium} />
                     </View>
                 </View>
             </View>
