@@ -171,7 +171,7 @@ export const sensorScreenStyles = StyleSheet.create({
         justifyContent: 'space-between',
         marginTop: 12,
     },
-    card: {
+    halfCard: {
         width: '48%',
         backgroundColor: colors.bgLight,
         borderRadius: 12,
@@ -187,7 +187,7 @@ export const sensorScreenStyles = StyleSheet.create({
         minHeight: 96,
         justifyContent: 'space-between',
     },
-    npkCard: {
+    fullCard: {
         width: '100%',
         backgroundColor: colors.bgLight,
         borderRadius: 12,
@@ -213,5 +213,11 @@ export const sensorScreenStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20
     },
 });
