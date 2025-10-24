@@ -55,7 +55,7 @@ function AppContent() {
           }}
         >
             <Tab.Screen 
-              name="HomeScreen" 
+              name="Home" 
               component={DashboardStack}
               options={{
                 tabBarIcon: ({ color }) => (
