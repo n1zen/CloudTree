@@ -1,8 +1,11 @@
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { appStyles } from '../assets/styles/AppStyles';
+import InfoContent from '../components/InfoContent.tsx';
+
 export default function InfoScreen() {
     return (
-        <View>
-            <Text>About Screen</Text>
+        <View style={appStyles.container}>
+            <InfoContent />
         </View>
     );
 }
