@@ -11,6 +11,7 @@ import { requestLocationPermission, getCurrentLocation } from '../lib/locService
 import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
 import { useNavigation } from '@react-navigation/native';
 import StatusIndicator from '../components/StatusIndicator.tsx';
+import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
 
 export default function SensorScreen() {
 
@@ -98,6 +99,13 @@ export default function SensorScreen() {
         setShouldConnect(true);
     }
 
+    const handleSaveBtnPress = () => {
+        // Disconnect from broker
+        setShouldConnect(false);
+        // Open the modal
+        setIsModalVisible(true);
+    }
+
     return (
         <View style={sensorScreenStyles.mainContainer}>
             
@@ -174,7 +182,7 @@ export default function SensorScreen() {
                     />
                     <Button
                         title="Save"
-                        onPress={() => setIsModalVisible(true)}
+                        onPress={handleSaveBtnPress}
                         style={sensorScreenStyles.button}
                         color={colors.primary}
                     />
@@ -231,6 +239,21 @@ function Save({soilData, setIsModalVisible}) {
         }
         getLocation();
     },[])
+
+    const generateComment = () => {
+        const commentData = generateAutoComment({
+            Hum: soilData.moisture,
+            Temp: soilData.temperature,
+            Ec: soilData.electricalConductivity,
+            Ph: soilData.phLevel,
+            Nitrogen: soilData.nitrogen,
+            Phosphorus: soilData.phosphorus,
+            Potassium: soilData.potassium
+        });
+        
+        const formattedComment = formatCommentData(commentData);
+        setComments(formattedComment);
+    }
 
     const handleSave = async () => {
         const newSoilData = {
@@ -345,6 +368,11 @@ function Save({soilData, setIsModalVisible}) {
                 value={comments}
                 onChangeText={setComments}
             />
+            <Button
+                title="AutoGenerate Comment"
+                onPress={generateComment}
+                color={colors.primary}
+            />
         </View>
     );
 }
@@ -379,6 +407,21 @@ function Update({soilData, setIsModalVisible}) {
         setIsModalVisible(false);
         setComments('Comments');
         navigation.navigate('Home');
+    }
+
+    const generateComment = () => {
+        const commentData = generateAutoComment({
+            Hum: soilData.moisture,
+            Temp: soilData.temperature,
+            Ec: soilData.electricalConductivity,
+            Ph: soilData.phLevel,
+            Nitrogen: soilData.nitrogen,
+            Phosphorus: soilData.phosphorus,
+            Potassium: soilData.potassium
+        });
+
+        const formattedComment = formatCommentData(commentData);
+        setComments(formattedComment);
     }
 
     useEffect(() => {
@@ -483,6 +526,11 @@ function Update({soilData, setIsModalVisible}) {
                 style={sensorScreenStyles.textarea}
                 value={comments}
                 onChangeText={setComments}
+            />
+            <Button
+                title="Auto Generate Comment"
+                onPress={generateComment}
+                color={colors.primary}
             />
         </View>
     );
