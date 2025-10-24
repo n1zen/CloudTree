@@ -11,8 +11,15 @@ const PHILIPPINES_BOUNDS = {
 };
 
 // Keep zoom levels reasonable for bundle size
-const MAX_ZOOM = 8; // This will give you ~20-50MB total
+const MAX_ZOOM = 8;
 const ASSETS_PATH = './src/assets/maps/philippines';
+
+// Multiple tile sources to avoid blocking
+const TILE_SOURCES = [
+    'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png'
+];
+
+let currentSourceIndex = 0;
 
 async function downloadTiles() {
   console.log('🚀 Starting Philippines tile download...');
@@ -27,6 +34,7 @@ async function downloadTiles() {
 
   let totalTiles = 0;
   let downloadedTiles = 0;
+  let failedTiles = 0;
 
   // Calculate total tiles first
   for (let zoom = 0; zoom <= MAX_ZOOM; zoom++) {
@@ -51,32 +59,67 @@ async function downloadTiles() {
         fs.mkdirSync(tilePath, { recursive: true });
       }
 
-      const tileUrl = `https://tile.openstreetmap.org/${zoom}/${tile.x}/${tile.y}.png`;
       const tileFile = path.join(tilePath, `${tile.y}.png`);
       
+      // Skip if tile already exists
+      if (fs.existsSync(tileFile)) {
+        downloadedTiles++;
+        continue;
+      }
+      
       try {
-        await downloadTile(tileUrl, tileFile);
+        await downloadTileWithRetry(zoom, tile.x, tile.y, tileFile);
         downloadedTiles++;
         const progress = Math.round((downloadedTiles / totalTiles) * 100);
         process.stdout.write(`\r📈 Progress: ${progress}% (${downloadedTiles}/${totalTiles})`);
+        
+        // Add delay to be respectful to servers
+        await sleep(100); // 100ms delay between requests
+        
       } catch (error) {
+        failedTiles++;
         console.error(`\n❌ Failed to download ${zoom}/${tile.x}/${tile.y}:`, error.message);
       }
     }
   }
   
   console.log('\n🎉 Download completed!');
+  console.log(`✅ Successfully downloaded: ${downloadedTiles} tiles`);
+  console.log(`❌ Failed downloads: ${failedTiles} tiles`);
   console.log(`📁 Tiles saved to: ${ASSETS_PATH}`);
+}
+
+async function downloadTileWithRetry(zoom, x, y, filePath, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const tileUrl = TILE_SOURCES[currentSourceIndex]
+        .replace('{z}', zoom)
+        .replace('{x}', x)
+        .replace('{y}', y);
+      
+      await downloadTile(tileUrl, filePath);
+      return; // Success
+    } catch (error) {
+      if (attempt === retries - 1) {
+        throw error; // Last attempt failed
+      }
+      
+      // Switch to next tile source
+      currentSourceIndex = (currentSourceIndex + 1) % TILE_SOURCES.length;
+      console.log(`\n🔄 Switching to tile source ${currentSourceIndex + 1}`);
+      
+      // Wait before retry
+      await sleep(1000);
+    }
+  }
 }
 
 function getTilesForZoom(zoom) {
   const tiles = [];
   
-  // Convert lat/lng bounds to tile coordinates
   const minTileX = Math.floor((PHILIPPINES_BOUNDS.west + 180) / 360 * Math.pow(2, zoom));
   const maxTileX = Math.floor((PHILIPPINES_BOUNDS.east + 180) / 360 * Math.pow(2, zoom));
   
-  // Convert latitude to tile Y coordinate (Mercator projection)
   const minTileY = Math.floor(
     (1 - Math.log(Math.tan(PHILIPPINES_BOUNDS.north * Math.PI / 180) + 
       1 / Math.cos(PHILIPPINES_BOUNDS.north * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)
@@ -113,6 +156,10 @@ function downloadTile(url, filePath) {
       reject(err);
     });
   });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Run the download

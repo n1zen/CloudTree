@@ -213,27 +213,27 @@ function Save({soilData, setIsModalVisible}) {
     const navigation = useNavigation();
 
     useEffect(() => {
-        const getLocation = async () => {
-            setIsLoading(true);
-            try {
-                const permsGranted = await requestLocationPermission();
-                if (permsGranted) {
-                    const currentLoc = await getCurrentLocation();
-                    setLocation(currentLoc);
-                    setLocationPermission(true);
-                    setLocationError(null);
-                } else {
-                    setLocationPermission(false);
-                    setLocationError('Location permission denied');
-                }
-            } catch (error) {
-                setLocationPermission(false);
-                setLocationError(error.message);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        getLocation();
+        // const getLocation = async () => {
+        //     setIsLoading(true);
+        //     try {
+        //         const permsGranted = await requestLocationPermission();
+        //         if (permsGranted) {
+        //             const currentLoc = await getCurrentLocation();
+        //             setLocation(currentLoc);
+        //             setLocationPermission(true);
+        //             setLocationError(null);
+        //         } else {
+        //             setLocationPermission(false);
+        //             setLocationError('Location permission denied');
+        //         }
+        //     } catch (error) {
+        //         setLocationPermission(false);
+        //         setLocationError(error.message);
+        //     } finally {
+        //         setIsLoading(false);
+        //     }
+        // }
+        // getLocation();
     },[])
 
     const generateComment = () => {

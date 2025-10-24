@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { colors } from '../assets/styles/Colors.ts';
 import InfoScreen from '../screens/InfoScreen.tsx';
+import PreBundledPhilippinesMap from '../components/PreBundledPhilippinesMap.tsx';
 
 const Stack = createStackNavigator();
 
@@ -26,6 +27,14 @@ export default function InfoStack() {
         component={InfoScreen}
         options={{
           title: 'Information',
+          headerShown: false, // Hide header since tab navigator handles it
+        }}
+      />
+      <Stack.Screen
+        name="PhMap"
+        component={PreBundledPhilippinesMap}
+        options={{
+          title: 'Philippines Map',
           headerShown: false, // Hide header since tab navigator handles it
         }}
       />
