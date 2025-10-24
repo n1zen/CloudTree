@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { colors } from '../assets/styles/Colors.ts';
-import AboutScreen from '../screens/AboutScreen.tsx';
+import InfoScreen from '../screens/InfoScreen.tsx';
 
 const Stack = createStackNavigator();
 
-export default function AboutStack() {
+export default function InfoStack() {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -22,10 +22,10 @@ export default function AboutStack() {
       }}
     >
       <Stack.Screen 
-        name="AboutMain" 
-        component={AboutScreen}
+        name="InfoMain" 
+        component={InfoScreen}
         options={{
-          title: 'About CloudTree',
+          title: 'Information',
           headerShown: false, // Hide header since tab navigator handles it
         }}
       />

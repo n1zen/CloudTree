@@ -1,8 +1,8 @@
-import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { ParameterList, SoilList } from '../lib/types.ts';
-import { getParameters, deleteParameter, deleteSoil } from '../lib/axios.ts';
+import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
+import { getParameters, deleteParameter, deleteSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
 // @ts-ignore
 import { Table, Row } from 'react-native-table-component';
 import { dashboardStyles } from '../assets/styles/DashboardStyles.ts';
@@ -20,6 +20,11 @@ export default function SoilDetailsScreen() {
     const { soil } = route.params;
     const [parameters, setParameters] = useState<ParameterList[]>([]);
     const [latestParameter, setLatestParameter] = useState<ParameterList | null>(null);
+    const [editableComments, setEditableComments] = useState<string>('');
+    const [isEditingComments, setIsEditingComments] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [isFullScreenModalVisible, setIsFullScreenModalVisible] = useState<boolean>(false);
+    const [fullScreenComments, setFullScreenComments] = useState<string>('');
     const navigation = useNavigation<any>();
     const fetchParameters = async () => {
         const newParameters = await getParameters(soil.Soil_ID);
@@ -43,9 +48,16 @@ export default function SoilDetailsScreen() {
         fetchParameters();
     }, []);
 
+    // Update editable comments when latestParameter changes
+    useEffect(() => {
+        if (latestParameter) {
+            setEditableComments(latestParameter.Comments || '');
+            setIsEditingComments(false);
+        }
+    }, [latestParameter]);
+
     const handleDelete = (parameterID: string) => {
         deleteParameter(parameterID) .then(() => {
-            console.log('Parameter deleted successfully');
             fetchParameters();
             setLatestParameter(parameters[0] ?? null);
         })
@@ -65,12 +77,106 @@ export default function SoilDetailsScreen() {
     }
 
     const handleRowPress = (parameter: ParameterList) => {
-        console.log('Row pressed:', parameter);
         setLatestParameter(parameter);
     }
 
+    const handleSaveComments = async () => {
+        if (!latestParameter) return;
+        
+        setIsSaving(true);
+        try {
+
+            const parameterData: ParameterRequest = {
+                Hum: latestParameter.Hum,
+                Temp: latestParameter.Temp,
+                Ec: latestParameter.Ec,
+                Ph: latestParameter.Ph,
+                Nitrogen: latestParameter.Nitrogen,
+                Phosphorus: latestParameter.Phosphorus,
+                Potassium: latestParameter.Potassium,
+                Comments: editableComments
+            };
+
+            const updateParameterData: UpdateParameterRequest = {
+                Soil_ID: idToNumber(soil.Soil_ID).toString(),
+                Parameters: parameterData
+            };
+
+            await saveParameterData(updateParameterData);
+            
+            // Update the local state
+            const updatedParameter = { ...latestParameter, Comments: editableComments };
+            setLatestParameter(updatedParameter);
+            
+            // Update the parameters list
+            const updatedParameters = parameters.map(p => 
+                p.Parameter_ID === latestParameter.Parameter_ID 
+                    ? updatedParameter 
+                    : p
+            );
+            setParameters(updatedParameters);
+            
+            setIsEditingComments(false);
+            Alert.alert('Success', 'Comments updated successfully!');
+        } catch (error) {
+            console.error('Failed to save comments:', error);
+            Alert.alert('Error', 'Failed to save comments. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }
+
+    const handleOpenFullScreenComments = () => {
+        setFullScreenComments(latestParameter?.Comments || '');
+        setIsFullScreenModalVisible(true);
+    }
+
+    const handleSaveFullScreenComments = async () => {
+        if (!latestParameter) return;
+        
+        setIsSaving(true);
+        try {
+            const parameterData: ParameterRequest = {
+                Hum: latestParameter.Hum,
+                Temp: latestParameter.Temp,
+                Ec: latestParameter.Ec,
+                Ph: latestParameter.Ph,
+                Nitrogen: latestParameter.Nitrogen,
+                Phosphorus: latestParameter.Phosphorus,
+                Potassium: latestParameter.Potassium,
+                Comments: fullScreenComments
+            };
+
+            const updateParameterData: UpdateParameterRequest = {
+                Soil_ID: idToNumber(soil.Soil_ID).toString(),
+                Parameters: parameterData
+            };
+
+            await saveParameterData(updateParameterData);
+            
+            setIsFullScreenModalVisible(false);
+            Alert.alert('Success', 'Comments updated successfully!', [
+                {
+                    text: 'OK',
+                    onPress: () => navigation.navigate('DashboardScreen')
+                }
+            ]);
+        } catch (error) {
+            console.error('Error saving comments:', error);
+            Alert.alert('Error', 'Failed to save comments. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }
+
+    const handleCancelFullScreenComments = () => {
+        setFullScreenComments(latestParameter?.Comments || '');
+        setIsFullScreenModalVisible(false);
+    }
+
     return (
-        <ScrollView>
+        <>
+            <ScrollView>
             <View style={dashboardStyles.container}>
                  <View style={dashboardStyles.section}>
                      <Text style={dashboardStyles.title}>Soil Details</Text>
@@ -153,7 +259,45 @@ export default function SoilDetailsScreen() {
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Comments</Text>
-                                <TextInput style={dashboardStyles.textareaReadOnly} value={latestParameter.Comments} editable={false} multiline />
+                                <View style={{ flex: 1 }}>
+                                    <TextInput 
+                                        style={[
+                                            dashboardStyles.textareaReadOnly,
+                                            isEditingComments && {
+                                                backgroundColor: colors.light,
+                                                borderColor: colors.primary,
+                                                borderWidth: 2,
+                                            }
+                                        ]} 
+                                        value={latestParameter.Comments || ''} 
+                                        multiline 
+                                        numberOfLines={5}
+                                    />
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        marginTop: 8,
+                                        gap: 8,
+                                    }}>
+                                        <TouchableOpacity 
+                                            style={{
+                                                paddingHorizontal: 16,
+                                                paddingVertical: 8,
+                                                borderRadius: 6,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minWidth: 80,
+                                                backgroundColor: colors.primary,
+                                            }}
+                                            onPress={handleOpenFullScreenComments}
+                                        >
+                                            <Text style={{
+                                                fontSize: 14,
+                                                fontWeight: '600',
+                                                color: colors.light,
+                                            }}>Full Screen</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
                              <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Recorded</Text>
@@ -167,23 +311,63 @@ export default function SoilDetailsScreen() {
                  <View style={dashboardStyles.section}>
                     <Text style={dashboardStyles.title}>Readings List</Text>
                     <ScrollView
-                        horizontal
-                        nestedScrollEnabled
-                        style={dashboardStyles.tableOuterScroll}
-                        contentContainerStyle={{ width: Dimensions.get('window').width + 1 }}
-                        showsHorizontalScrollIndicator
-                        persistentScrollbar
-                        keyboardShouldPersistTaps="handled"
-                        directionalLockEnabled
-                    >
-                         <ScrollView nestedScrollEnabled style={dashboardStyles.tableInnerScroll}>
-                             <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
-                         </ScrollView>
+                        horizontal>
+                            <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
                     </ScrollView>
                 </View>
             </View>
         </ScrollView>
-    );
+        
+        {/* Full Screen Comments Modal */}
+        <Modal
+            animationType="slide"
+            transparent={false}
+            visible={isFullScreenModalVisible}
+            onRequestClose={handleCancelFullScreenComments}
+        >
+            <View style={dashboardStyles.fullScreenModalContainer}>
+                <View style={dashboardStyles.fullScreenModalHeader}>
+                    <Text style={dashboardStyles.fullScreenModalTitle}>Edit Comments</Text>
+                    <TouchableOpacity
+                        onPress={handleCancelFullScreenComments}
+                        style={dashboardStyles.fullScreenModalCloseButton}
+                    >
+                        <Text style={dashboardStyles.fullScreenModalCloseText}>×</Text>
+                    </TouchableOpacity>
+                </View>
+                
+                <TextInput
+                    style={dashboardStyles.fullScreenModalTextInput}
+                    value={fullScreenComments}
+                    onChangeText={setFullScreenComments}
+                    multiline
+                    placeholder="Add detailed comments about this soil reading..."
+                    placeholderTextColor={colors.secondary}
+                />
+                
+                <View style={dashboardStyles.fullScreenModalButtonContainer}>
+                    <TouchableOpacity
+                        style={[dashboardStyles.fullScreenModalButton, dashboardStyles.fullScreenModalCancelButton]}
+                        onPress={handleCancelFullScreenComments}
+                        disabled={isSaving}
+                    >
+                        <Text style={dashboardStyles.fullScreenModalButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                        style={[dashboardStyles.fullScreenModalButton, dashboardStyles.fullScreenModalSaveButton]}
+                        onPress={handleSaveFullScreenComments}
+                        disabled={isSaving}
+                    >
+                        <Text style={dashboardStyles.fullScreenModalButtonText}>
+                            {isSaving ? 'Saving...' : 'Save Comments'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+             </Modal>
+         </>
+     );
 }
 
 function TableComponent({parametersData, onRowPress}: {parametersData: ParameterList[]; onRowPress?: (parameter: ParameterList) => void}) {

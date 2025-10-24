@@ -11,11 +11,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { TvMinimalIcon, LeafIcon, InfoIcon } from 'lucide-react-native';
+import { TvMinimalIcon, LeafIcon, ClipboardListIcon } from 'lucide-react-native';
 
 import DashboardStack from './src/navigation/DashboardStack.tsx';
 import SensorStack from './src/navigation/SensorStack.tsx';
-import AboutStack from './src/navigation/AboutStack.tsx';
+import InfoStack from './src/navigation/InfoStack.tsx';
 
 import { appStyles, tabBarColors } from './src/assets/styles/AppStyles.ts';
 import { colors } from './src/assets/styles/Colors.ts';
@@ -55,7 +55,7 @@ function AppContent() {
           }}
         >
             <Tab.Screen 
-              name="HomeScreen" 
+              name="Home" 
               component={DashboardStack}
               options={{
                 tabBarIcon: ({ color }) => (
@@ -83,22 +83,21 @@ function AppContent() {
                 )
               }}
             />
-            {/* <Tab.Screen 
-              name="About CloudTree" 
-              component={AboutStack}
+            <Tab.Screen 
+              name="Info"
+              component={InfoStack}
               options={{
-                tabBarIcon: ({ color }) => (
-                  <InfoIcon size={24} color={color} />
+                tabBarIcon: ({ color}) => (
+                  <ClipboardListIcon size={24} color={color} />
                 ),
                 headerTitle: () => (
                   <View style={appStyles.headerTitleContainer}>
-                    <InfoIcon size={24} color={colors.light} />
-                    <Text style={appStyles.headerTitleStyle}>About CloudTree</Text>
+                    <ClipboardListIcon size={24} color={colors.light} />
+                    <Text style={appStyles.headerTitleStyle}>Information</Text>
                   </View>
-                ),
-                tabBarLabel: 'About',
+                )
               }}
-            /> */}
+            />
         </Tab.Navigator>
       </NavigationContainer>
     </View>
