@@ -72,17 +72,6 @@ export const sensorScreenStyles = StyleSheet.create({
         marginTop: 20,
         gap: 10
     },
-    button: {
-        backgroundColor: colors.primary,
-        padding: 15,
-        borderRadius: 12,
-        marginVertical: 5,
-        shadowColor: colors.dark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
-    },
     modalContainer: {
         flex: 1,
         backgroundColor: colors.bgLight,
@@ -214,10 +203,72 @@ export const sensorScreenStyles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    commentsActionContainer: {
+        justifyContent: 'space-between',
+        gap: 10,
+        marginTop: 10,
+    },
+    // Full Screen Comments Modal Styles
+    fullScreenModalContainer: {
+        flex: 1,
+        backgroundColor: colors.bgLight,
+        padding: 20,
+    },
+    fullScreenModalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20
+        marginBottom: 20,
+        paddingBottom: 15,
+        borderBottomWidth: 2,
+        borderBottomColor: colors.secondary,
+    },
+    fullScreenModalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: colors.dark,
+    },
+    fullScreenModalCloseButton: {
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: colors.danger,
+    },
+    fullScreenModalCloseText: {
+        color: colors.light,
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    fullScreenModalTextInput: {
+        flex: 1,
+        backgroundColor: colors.bgLight2,
+        borderRadius: 12,
+        padding: 16,
+        fontSize: 16,
+        textAlignVertical: 'top',
+        borderWidth: 2,
+        borderColor: colors.secondary,
+        marginBottom: 20,
+    },
+    fullScreenModalButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
+    fullScreenModalButton: {
+        flex: 1,
+        paddingVertical: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    fullScreenModalButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.light,
+    },
+    fullScreenModalCancelButton: {
+        backgroundColor: colors.danger,
+    },
+    fullScreenModalSaveButton: {
+        backgroundColor: colors.success,
     },
 });

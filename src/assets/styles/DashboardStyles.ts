@@ -144,4 +144,67 @@ export const dashboardStyles = StyleSheet.create({
     cancelButton: {
         backgroundColor: colors.danger,
     },
+    // Full Screen Comments Modal Styles
+    fullScreenModalContainer: {
+        flex: 1,
+        backgroundColor: colors.bgLight,
+        padding: 20,
+    },
+    fullScreenModalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingBottom: 15,
+        borderBottomWidth: 2,
+        borderBottomColor: colors.secondary,
+    },
+    fullScreenModalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: colors.dark,
+    },
+    fullScreenModalCloseButton: {
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: colors.danger,
+    },
+    fullScreenModalCloseText: {
+        color: colors.light,
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    fullScreenModalTextInput: {
+        flex: 1,
+        backgroundColor: colors.bgLight2,
+        borderRadius: 12,
+        padding: 16,
+        fontSize: 16,
+        textAlignVertical: 'top',
+        borderWidth: 2,
+        borderColor: colors.secondary,
+        marginBottom: 20,
+    },
+    fullScreenModalButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
+    fullScreenModalButton: {
+        flex: 1,
+        paddingVertical: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    fullScreenModalButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.light,
+    },
+    fullScreenModalCancelButton: {
+        backgroundColor: colors.danger,
+    },
+    fullScreenModalSaveButton: {
+        backgroundColor: colors.success,
+    },
 });

@@ -107,103 +107,97 @@ export default function SensorScreen() {
     }
 
     return (
-        <View style={sensorScreenStyles.mainContainer}>
-            
-            <ScrollView 
-                contentContainerStyle={sensorScreenStyles.scrollContent}
-                showsVerticalScrollIndicator={false}
-            >
+        <ScrollView>
+            <View style={sensorScreenStyles.mainContainer}>
                 <View style={[connectionStatus === 'Connected' ? sensorScreenStyles.sdcSuccess :
-                    connectionStatus === 'Error' ? sensorScreenStyles.sdcError :
-                    sensorScreenStyles.sdcDisconnected,
-                        {backgroundColor: colors.bgLight2}
-                    ]}>
-                    <View style={sensorScreenStyles.sensorStatusContainer}>
-                        <Text>Connection Status: </Text>
-                        <Text style={[sensorScreenStyles.sensorStatusIndicator, {
-                            color: connectionStatus === 'Connected' ? colors.success :
-                                connectionStatus === 'Error' ? colors.danger :
-                                colors.warning
-                        }]}>{connectionStatus}</Text>
+                        connectionStatus === 'Error' ? sensorScreenStyles.sdcError :
+                        sensorScreenStyles.sdcDisconnected,
+                            {backgroundColor: colors.bgLight2}
+                        ]}>
+                        <View style={sensorScreenStyles.sensorStatusContainer}>
+                            <Text>Connection Status: </Text>
+                            <Text style={[sensorScreenStyles.sensorStatusIndicator, {
+                                color: connectionStatus === 'Connected' ? colors.success :
+                                    connectionStatus === 'Error' ? colors.danger :
+                                    colors.warning
+                            }]}>{connectionStatus}</Text>
+                        </View>
+                        <View style={sensorScreenStyles.cardsContainer}>
+                            <View style={sensorScreenStyles.fullCard}>
+                                <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
+                                <View style={sensorScreenStyles.cardRow}>
+                                    <Text>{soilData.moisture} %</Text>
+                                    <StatusIndicator field="Hum" value={soilData.moisture} />
+                                </View>
+                            </View>
+                            <View style={sensorScreenStyles.fullCard}>
+                                <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
+                                <View style={sensorScreenStyles.cardRow}>
+                                    <Text>{soilData.temperature} °C</Text>
+                                    <StatusIndicator field="Temp" value={soilData.temperature} />
+                                </View>
+                            </View>
+                            <View style={sensorScreenStyles.fullCard}>
+                                <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
+                                <View style={sensorScreenStyles.cardRow}>
+                                    <Text>{soilData.electricalConductivity} us/cm</Text>
+                                    <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
+                                </View>
+                            </View>
+                            <View style={sensorScreenStyles.fullCard}>
+                                <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
+                                <View style={sensorScreenStyles.cardRow}>
+                                    <Text>{soilData.phLevel} pH</Text>
+                                    <StatusIndicator field="Ph" value={soilData.phLevel} />
+                                </View>
+                            </View>
+                            <View style={sensorScreenStyles.fullCard}>
+                                <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
+                                <View style={sensorScreenStyles.cardRow}>
+                                    <Text>N: {soilData.nitrogen} mg/kg</Text>
+                                    <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
+                                </View>
+                                <View style={sensorScreenStyles.cardRow}>
+                                    <Text>P: {soilData.phosphorus} mg/kg</Text>
+                                    <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
+                                </View>
+                                <View style={sensorScreenStyles.cardRow}>
+                                    <Text>K: {soilData.potassium} mg/kg</Text>
+                                    <StatusIndicator field="Potassium" value={soilData.potassium} />
+                                </View>
+                            </View>
+                        </View>     
                     </View>
-                    <View style={sensorScreenStyles.cardsContainer}>
-                        <View style={sensorScreenStyles.fullCard}>
-                            <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
-                            <View style={sensorScreenStyles.cardRow}>
-                                <Text>{soilData.moisture} %</Text>
-                                <StatusIndicator field="Hum" value={soilData.moisture} />
-                            </View>
-                        </View>
-                        <View style={sensorScreenStyles.fullCard}>
-                            <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
-                            <View style={sensorScreenStyles.cardRow}>
-                                <Text>{soilData.temperature} °C</Text>
-                                <StatusIndicator field="Temp" value={soilData.temperature} />
-                            </View>
-                        </View>
-                        <View style={sensorScreenStyles.fullCard}>
-                            <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
-                            <View style={sensorScreenStyles.cardRow}>
-                                <Text>{soilData.electricalConductivity} us/cm</Text>
-                                <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
-                            </View>
-                        </View>
-                        <View style={sensorScreenStyles.fullCard}>
-                            <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
-                            <View style={sensorScreenStyles.cardRow}>
-                                <Text>{soilData.phLevel} pH</Text>
-                                <StatusIndicator field="Ph" value={soilData.phLevel} />
-                            </View>
-                        </View>
-                        <View style={sensorScreenStyles.fullCard}>
-                            <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
-                            <View style={sensorScreenStyles.cardRow}>
-                                <Text>N: {soilData.nitrogen} mg/kg</Text>
-                                <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
-                            </View>
-                            <View style={sensorScreenStyles.cardRow}>
-                                <Text>P: {soilData.phosphorus} mg/kg</Text>
-                                <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
-                            </View>
-                            <View style={sensorScreenStyles.cardRow}>
-                                <Text>K: {soilData.potassium} mg/kg</Text>
-                                <StatusIndicator field="Potassium" value={soilData.potassium} />
-                            </View>
-                        </View>
+                    <View style={sensorScreenStyles.actionsContainer}>
+                        <Button
+                            title="Connect to Broker"
+                            onPress={connectToBroker}
+                            disabled={shouldConnect}
+                            color={colors.primary}
+                        />
+                        <Button
+                            title="Save"
+                            onPress={handleSaveBtnPress}
+                            color={colors.primary}
+                        />
                     </View>
-                </View>
-                <View style={sensorScreenStyles.actionsContainer}>
-                    <Button
-                        title="Connect to Broker"
-                        onPress={connectToBroker}
-                        disabled={shouldConnect}
-                        style={sensorScreenStyles.button}
-                        color={colors.primary}
-                    />
-                    <Button
-                        title="Save"
-                        onPress={handleSaveBtnPress}
-                        style={sensorScreenStyles.button}
-                        color={colors.primary}
-                    />
-                </View>
-            </ScrollView>
-            <Modal
-                animationType='slide'
-                transparent={true}
-                visible={isModalVisible}
-                onRequestClose={() => setIsModalVisible(false)}
-            >
-                <ScrollView>
-                    <View style={sensorScreenStyles.modalContainer}>
-                        <View style={sensorScreenStyles.modalContent}>
-                            <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
-                            {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                <Modal
+                    animationType='slide'
+                    transparent={true}
+                    visible={isModalVisible}
+                    onRequestClose={() => setIsModalVisible(false)}
+                >
+                    <ScrollView>
+                        <View style={sensorScreenStyles.modalContainer}>
+                            <View style={sensorScreenStyles.modalContent}>
+                                <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
+                                {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                            </View>
                         </View>
-                    </View>
-                </ScrollView>
-            </Modal>
-        </View>
+                    </ScrollView>
+                </Modal>
+            </View>
+        </ScrollView>
     );
 }
 
@@ -214,6 +208,8 @@ function Save({soilData, setIsModalVisible}) {
     const [isLoading, setIsLoading] = useState(false);
     const [comments, setComments] = useState('Comments');
     const [soilName, setSoilName] = useState('Soil Name');
+    const [isFullScreenModalVisible, setIsFullScreenModalVisible] = useState(false);
+    const [fullScreenComments, setFullScreenComments] = useState('');
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -253,6 +249,21 @@ function Save({soilData, setIsModalVisible}) {
         
         const formattedComment = formatCommentData(commentData);
         setComments(formattedComment);
+    }
+
+    const handleOpenFullScreenComments = () => {
+        setFullScreenComments(comments);
+        setIsFullScreenModalVisible(true);
+    }
+
+    const handleSaveFullScreenComments = () => {
+        setComments(fullScreenComments);
+        setIsFullScreenModalVisible(false);
+    }
+
+    const handleCancelFullScreenComments = () => {
+        setFullScreenComments(comments);
+        setIsFullScreenModalVisible(false);
     }
 
     const handleSave = async () => {
@@ -368,11 +379,63 @@ function Save({soilData, setIsModalVisible}) {
                 value={comments}
                 onChangeText={setComments}
             />
-            <Button
-                title="AutoGenerate Comment"
-                onPress={generateComment}
-                color={colors.primary}
-            />
+            <View style={sensorScreenStyles.commentsActionContainer}>
+                <Button
+                    title="AutoGenerate Comment"
+                    onPress={generateComment}
+                    color={colors.primary}
+                />
+                <Button
+                    title="Full Screen Comments"
+                    onPress={handleOpenFullScreenComments}
+                    color={colors.secondary}
+                />
+            </View>
+            
+            {/* Full Screen Comments Modal */}
+            <Modal
+                animationType="slide"
+                transparent={false}
+                visible={isFullScreenModalVisible}
+                onRequestClose={handleCancelFullScreenComments}
+            >
+                <View style={sensorScreenStyles.fullScreenModalContainer}>
+                    <View style={sensorScreenStyles.fullScreenModalHeader}>
+                        <Text style={sensorScreenStyles.fullScreenModalTitle}>Edit Comments</Text>
+                        <TouchableOpacity
+                            onPress={handleCancelFullScreenComments}
+                            style={sensorScreenStyles.fullScreenModalCloseButton}
+                        >
+                            <Text style={sensorScreenStyles.fullScreenModalCloseText}>×</Text>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <TextInput
+                        style={sensorScreenStyles.fullScreenModalTextInput}
+                        value={fullScreenComments}
+                        onChangeText={setFullScreenComments}
+                        multiline
+                        placeholder="Add detailed comments about this soil reading..."
+                        placeholderTextColor={colors.secondary}
+                    />
+                    
+                    <View style={sensorScreenStyles.fullScreenModalButtonContainer}>
+                        <TouchableOpacity
+                            style={[sensorScreenStyles.fullScreenModalButton, sensorScreenStyles.fullScreenModalCancelButton]}
+                            onPress={handleCancelFullScreenComments}
+                        >
+                            <Text style={sensorScreenStyles.fullScreenModalButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                            style={[sensorScreenStyles.fullScreenModalButton, sensorScreenStyles.fullScreenModalSaveButton]}
+                            onPress={handleSaveFullScreenComments}
+                        >
+                            <Text style={sensorScreenStyles.fullScreenModalButtonText}>Save Comments</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -384,6 +447,8 @@ function Update({soilData, setIsModalVisible}) {
     const [showPicker, setShowPicker] = useState(false);
     const [comments, setComments] = useState('Comments');
     const [soilIDList, setSoilIDList] = useState([]);
+    const [isFullScreenModalVisible, setIsFullScreenModalVisible] = useState(false);
+    const [fullScreenComments, setFullScreenComments] = useState('');
     const navigation = useNavigation();
 
     const handleUpdate = async () => {
@@ -422,6 +487,21 @@ function Update({soilData, setIsModalVisible}) {
 
         const formattedComment = formatCommentData(commentData);
         setComments(formattedComment);
+    }
+
+    const handleOpenFullScreenComments = () => {
+        setFullScreenComments(comments);
+        setIsFullScreenModalVisible(true);
+    }
+
+    const handleSaveFullScreenComments = () => {
+        setComments(fullScreenComments);
+        setIsFullScreenModalVisible(false);
+    }
+
+    const handleCancelFullScreenComments = () => {
+        setFullScreenComments(comments);
+        setIsFullScreenModalVisible(false);
     }
 
     useEffect(() => {
@@ -527,11 +607,63 @@ function Update({soilData, setIsModalVisible}) {
                 value={comments}
                 onChangeText={setComments}
             />
-            <Button
-                title="Auto Generate Comment"
-                onPress={generateComment}
-                color={colors.primary}
-            />
+            <View style={sensorScreenStyles.commentsActionContainer}>
+                <Button
+                    title="Auto Generate Comment"
+                    onPress={generateComment}
+                    color={colors.primary}
+                />
+                <Button
+                    title="Full Screen Comments"
+                    onPress={handleOpenFullScreenComments}
+                    color={colors.secondary}
+                />
+            </View>
+            
+            {/* Full Screen Comments Modal */}
+            <Modal
+                animationType="slide"
+                transparent={false}
+                visible={isFullScreenModalVisible}
+                onRequestClose={handleCancelFullScreenComments}
+            >
+                <View style={sensorScreenStyles.fullScreenModalContainer}>
+                    <View style={sensorScreenStyles.fullScreenModalHeader}>
+                        <Text style={sensorScreenStyles.fullScreenModalTitle}>Edit Comments</Text>
+                        <TouchableOpacity
+                            onPress={handleCancelFullScreenComments}
+                            style={sensorScreenStyles.fullScreenModalCloseButton}
+                        >
+                            <Text style={sensorScreenStyles.fullScreenModalCloseText}>×</Text>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <TextInput
+                        style={sensorScreenStyles.fullScreenModalTextInput}
+                        value={fullScreenComments}
+                        onChangeText={setFullScreenComments}
+                        multiline
+                        placeholder="Add detailed comments about this soil reading..."
+                        placeholderTextColor={colors.secondary}
+                    />
+                    
+                    <View style={sensorScreenStyles.fullScreenModalButtonContainer}>
+                        <TouchableOpacity
+                            style={[sensorScreenStyles.fullScreenModalButton, sensorScreenStyles.fullScreenModalCancelButton]}
+                            onPress={handleCancelFullScreenComments}
+                        >
+                            <Text style={sensorScreenStyles.fullScreenModalButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                            style={[sensorScreenStyles.fullScreenModalButton, sensorScreenStyles.fullScreenModalSaveButton]}
+                            onPress={handleSaveFullScreenComments}
+                        >
+                            <Text style={sensorScreenStyles.fullScreenModalButtonText}>Save Comments</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }

@@ -310,20 +310,6 @@ export default function SoilDetailsScreen() {
                  </View>
                  <View style={dashboardStyles.section}>
                     <Text style={dashboardStyles.title}>Readings List</Text>
-                    {/* <ScrollView
-                        horizontal
-                        nestedScrollEnabled
-                        style={dashboardStyles.tableOuterScroll}
-                        contentContainerStyle={{ width: Dimensions.get('window').width + 1 }}
-                        showsHorizontalScrollIndicator
-                        persistentScrollbar
-                        keyboardShouldPersistTaps="handled"
-                        directionalLockEnabled
-                    >
-                         <ScrollView nestedScrollEnabled style={dashboardStyles.tableInnerScroll}>
-                             <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
-                         </ScrollView>
-                    </ScrollView> */}
                     <ScrollView
                         horizontal>
                             <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
@@ -339,53 +325,19 @@ export default function SoilDetailsScreen() {
             visible={isFullScreenModalVisible}
             onRequestClose={handleCancelFullScreenComments}
         >
-            <View style={{
-                flex: 1,
-                backgroundColor: colors.bgLight,
-                padding: 20,
-            }}>
-                <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 20,
-                    paddingBottom: 15,
-                    borderBottomWidth: 2,
-                    borderBottomColor: colors.secondary,
-                }}>
-                    <Text style={{
-                        fontSize: 24,
-                        fontWeight: 'bold',
-                        color: colors.dark,
-                    }}>Edit Comments</Text>
+            <View style={dashboardStyles.fullScreenModalContainer}>
+                <View style={dashboardStyles.fullScreenModalHeader}>
+                    <Text style={dashboardStyles.fullScreenModalTitle}>Edit Comments</Text>
                     <TouchableOpacity
                         onPress={handleCancelFullScreenComments}
-                        style={{
-                            padding: 8,
-                            borderRadius: 20,
-                            backgroundColor: colors.danger,
-                        }}
+                        style={dashboardStyles.fullScreenModalCloseButton}
                     >
-                        <Text style={{
-                            color: colors.light,
-                            fontSize: 18,
-                            fontWeight: 'bold',
-                        }}>×</Text>
+                        <Text style={dashboardStyles.fullScreenModalCloseText}>×</Text>
                     </TouchableOpacity>
                 </View>
                 
                 <TextInput
-                    style={{
-                        flex: 1,
-                        backgroundColor: colors.bgLight2,
-                        borderRadius: 12,
-                        padding: 16,
-                        fontSize: 16,
-                        textAlignVertical: 'top',
-                        borderWidth: 2,
-                        borderColor: colors.secondary,
-                        marginBottom: 20,
-                    }}
+                    style={dashboardStyles.fullScreenModalTextInput}
                     value={fullScreenComments}
                     onChangeText={setFullScreenComments}
                     multiline
@@ -393,45 +345,21 @@ export default function SoilDetailsScreen() {
                     placeholderTextColor={colors.secondary}
                 />
                 
-                <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    gap: 12,
-                }}>
+                <View style={dashboardStyles.fullScreenModalButtonContainer}>
                     <TouchableOpacity
-                        style={{
-                            flex: 1,
-                            paddingVertical: 16,
-                            borderRadius: 12,
-                            backgroundColor: colors.danger,
-                            alignItems: 'center',
-                        }}
+                        style={[dashboardStyles.fullScreenModalButton, dashboardStyles.fullScreenModalCancelButton]}
                         onPress={handleCancelFullScreenComments}
                         disabled={isSaving}
                     >
-                        <Text style={{
-                            fontSize: 16,
-                            fontWeight: '600',
-                            color: colors.light,
-                        }}>Cancel</Text>
+                        <Text style={dashboardStyles.fullScreenModalButtonText}>Cancel</Text>
                     </TouchableOpacity>
                     
                     <TouchableOpacity
-                        style={{
-                            flex: 1,
-                            paddingVertical: 16,
-                            borderRadius: 12,
-                            backgroundColor: colors.success,
-                            alignItems: 'center',
-                        }}
+                        style={[dashboardStyles.fullScreenModalButton, dashboardStyles.fullScreenModalSaveButton]}
                         onPress={handleSaveFullScreenComments}
                         disabled={isSaving}
                     >
-                        <Text style={{
-                            fontSize: 16,
-                            fontWeight: '600',
-                            color: colors.light,
-                        }}>
+                        <Text style={dashboardStyles.fullScreenModalButtonText}>
                             {isSaving ? 'Saving...' : 'Save Comments'}
                         </Text>
                     </TouchableOpacity>
