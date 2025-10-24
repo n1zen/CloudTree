@@ -56,7 +56,6 @@ export default function SoilDetailsScreen() {
 
     const handleDelete = (parameterID: string) => {
         deleteParameter(parameterID) .then(() => {
-            console.log('Parameter deleted successfully');
             fetchParameters();
             setLatestParameter(parameters[0] ?? null);
         })
@@ -76,7 +75,6 @@ export default function SoilDetailsScreen() {
     }
 
     const handleRowPress = (parameter: ParameterList) => {
-        console.log('Row pressed:', parameter);
         setLatestParameter(parameter);
     }
 
@@ -86,7 +84,6 @@ export default function SoilDetailsScreen() {
         setIsSaving(true);
         try {
 
-            console.log('soil id: ', soil.Soil_ID);
             const parameterData: ParameterRequest = {
                 Hum: latestParameter.Hum,
                 Temp: latestParameter.Temp,
@@ -102,8 +99,6 @@ export default function SoilDetailsScreen() {
                 Soil_ID: idToNumber(soil.Soil_ID).toString(),
                 Parameters: parameterData
             };
-
-            console.log('update parameter data: ', updateParameterData);
 
             await saveParameterData(updateParameterData);
             
