@@ -42,6 +42,7 @@ export type UpdateParameterRequest = {
     Soil_ID: string,
     Parameters: ParameterRequest
 }
+
 export type CreateSoilRequest = {
     Soil: SoilRequest,
     Parameters: ParameterRequest

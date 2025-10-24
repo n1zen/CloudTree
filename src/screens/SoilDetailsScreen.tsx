@@ -1,8 +1,8 @@
 import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { ParameterList, SoilList, ParameterRequest } from '../lib/types.ts';
-import { getParameters, deleteParameter, deleteSoil } from '../lib/axios.ts';
+import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
+import { getParameters, deleteParameter, deleteSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
 // @ts-ignore
 import { Table, Row } from 'react-native-table-component';
 import { dashboardStyles } from '../assets/styles/DashboardStyles.ts';
@@ -85,6 +85,8 @@ export default function SoilDetailsScreen() {
         
         setIsSaving(true);
         try {
+
+            console.log('soil id: ', soil.Soil_ID);
             const parameterData: ParameterRequest = {
                 Hum: latestParameter.Hum,
                 Temp: latestParameter.Temp,
@@ -96,7 +98,14 @@ export default function SoilDetailsScreen() {
                 Comments: editableComments
             };
 
-            await updateParameterData(latestParameter.Parameter_ID, parameterData);
+            const updateParameterData: UpdateParameterRequest = {
+                Soil_ID: idToNumber(soil.Soil_ID).toString(),
+                Parameters: parameterData
+            };
+
+            console.log('update parameter data: ', updateParameterData);
+
+            await saveParameterData(updateParameterData);
             
             // Update the local state
             const updatedParameter = { ...latestParameter, Comments: editableComments };
