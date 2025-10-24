@@ -1,7 +1,7 @@
 import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { ParameterList, SoilList } from '../lib/types.ts';
+import { ParameterList, SoilList, ParameterRequest } from '../lib/types.ts';
 import { getParameters, deleteParameter, deleteSoil } from '../lib/axios.ts';
 // @ts-ignore
 import { Table, Row } from 'react-native-table-component';
@@ -20,6 +20,9 @@ export default function SoilDetailsScreen() {
     const { soil } = route.params;
     const [parameters, setParameters] = useState<ParameterList[]>([]);
     const [latestParameter, setLatestParameter] = useState<ParameterList | null>(null);
+    const [editableComments, setEditableComments] = useState<string>('');
+    const [isEditingComments, setIsEditingComments] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
     const navigation = useNavigation<any>();
     const fetchParameters = async () => {
         const newParameters = await getParameters(soil.Soil_ID);
@@ -42,6 +45,14 @@ export default function SoilDetailsScreen() {
     useEffect(() => {
         fetchParameters();
     }, []);
+
+    // Update editable comments when latestParameter changes
+    useEffect(() => {
+        if (latestParameter) {
+            setEditableComments(latestParameter.Comments || '');
+            setIsEditingComments(false);
+        }
+    }, [latestParameter]);
 
     const handleDelete = (parameterID: string) => {
         deleteParameter(parameterID) .then(() => {
@@ -67,6 +78,55 @@ export default function SoilDetailsScreen() {
     const handleRowPress = (parameter: ParameterList) => {
         console.log('Row pressed:', parameter);
         setLatestParameter(parameter);
+    }
+
+    const handleSaveComments = async () => {
+        if (!latestParameter) return;
+        
+        setIsSaving(true);
+        try {
+            const parameterData: ParameterRequest = {
+                Hum: latestParameter.Hum,
+                Temp: latestParameter.Temp,
+                Ec: latestParameter.Ec,
+                Ph: latestParameter.Ph,
+                Nitrogen: latestParameter.Nitrogen,
+                Phosphorus: latestParameter.Phosphorus,
+                Potassium: latestParameter.Potassium,
+                Comments: editableComments
+            };
+
+            await updateParameterData(latestParameter.Parameter_ID, parameterData);
+            
+            // Update the local state
+            const updatedParameter = { ...latestParameter, Comments: editableComments };
+            setLatestParameter(updatedParameter);
+            
+            // Update the parameters list
+            const updatedParameters = parameters.map(p => 
+                p.Parameter_ID === latestParameter.Parameter_ID 
+                    ? updatedParameter 
+                    : p
+            );
+            setParameters(updatedParameters);
+            
+            setIsEditingComments(false);
+            Alert.alert('Success', 'Comments updated successfully!');
+        } catch (error) {
+            console.error('Failed to save comments:', error);
+            Alert.alert('Error', 'Failed to save comments. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }
+
+    const handleEditComments = () => {
+        setIsEditingComments(true);
+    }
+
+    const handleCancelEdit = () => {
+        setEditableComments(latestParameter?.Comments || '');
+        setIsEditingComments(false);
     }
 
     return (
@@ -153,7 +213,94 @@ export default function SoilDetailsScreen() {
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Comments</Text>
-                                <TextInput style={dashboardStyles.textareaReadOnly} value={latestParameter.Comments} editable={false} multiline />
+                                <View style={{ flex: 1 }}>
+                                    <TextInput 
+                                        style={[
+                                            dashboardStyles.textareaReadOnly,
+                                            isEditingComments && {
+                                                backgroundColor: colors.light,
+                                                borderColor: colors.primary,
+                                                borderWidth: 2,
+                                            }
+                                        ]} 
+                                        value={editableComments} 
+                                        editable={isEditingComments}
+                                        multiline 
+                                        numberOfLines={3}
+                                        onChangeText={setEditableComments}
+                                        placeholder="Add comments about this reading..."
+                                    />
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'flex-end',
+                                        marginTop: 8,
+                                        gap: 8,
+                                    }}>
+                                        {!isEditingComments ? (
+                                            <TouchableOpacity 
+                                                style={{
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 8,
+                                                    borderRadius: 6,
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    minWidth: 80,
+                                                    backgroundColor: colors.info,
+                                                }}
+                                                onPress={handleEditComments}
+                                            >
+                                                <Text style={{
+                                                    fontSize: 14,
+                                                    fontWeight: '600',
+                                                    color: colors.light,
+                                                }}>Edit Comments</Text>
+                                            </TouchableOpacity>
+                                        ) : (
+                                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                                <TouchableOpacity 
+                                                    style={{
+                                                        paddingHorizontal: 16,
+                                                        paddingVertical: 8,
+                                                        borderRadius: 6,
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        minWidth: 80,
+                                                        backgroundColor: colors.success,
+                                                    }}
+                                                    onPress={handleSaveComments}
+                                                    disabled={isSaving}
+                                                >
+                                                    <Text style={{
+                                                        fontSize: 14,
+                                                        fontWeight: '600',
+                                                        color: colors.light,
+                                                    }}>
+                                                        {isSaving ? 'Saving...' : 'Save'}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity 
+                                                    style={{
+                                                        paddingHorizontal: 16,
+                                                        paddingVertical: 8,
+                                                        borderRadius: 6,
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        minWidth: 80,
+                                                        backgroundColor: colors.danger,
+                                                    }}
+                                                    onPress={handleCancelEdit}
+                                                    disabled={isSaving}
+                                                >
+                                                    <Text style={{
+                                                        fontSize: 14,
+                                                        fontWeight: '600',
+                                                        color: colors.light,
+                                                    }}>Cancel</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
                             </View>
                              <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Recorded</Text>

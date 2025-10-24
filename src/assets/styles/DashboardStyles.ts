@@ -110,4 +110,38 @@ export const dashboardStyles = StyleSheet.create({
         fontSize: 12,
         textAlign: 'center',
     },
+    // Editable comments styles - Updated for comment editing functionality
+    textareaEditable: {
+        backgroundColor: colors.light,
+        borderColor: colors.primary,
+        borderWidth: 2,
+    },
+    commentActionBar: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: 8,
+        gap: 8,
+    },
+    actionButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 80,
+    },
+    actionButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.light,
+    },
+    editButton: {
+        backgroundColor: colors.info,
+    },
+    saveButton: {
+        backgroundColor: colors.success,
+    },
+    cancelButton: {
+        backgroundColor: colors.danger,
+    },
 });
