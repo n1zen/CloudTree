@@ -1,4 +1,4 @@
-import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
@@ -23,6 +23,8 @@ export default function SoilDetailsScreen() {
     const [editableComments, setEditableComments] = useState<string>('');
     const [isEditingComments, setIsEditingComments] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [isFullScreenModalVisible, setIsFullScreenModalVisible] = useState<boolean>(false);
+    const [fullScreenComments, setFullScreenComments] = useState<string>('');
     const navigation = useNavigation<any>();
     const fetchParameters = async () => {
         const newParameters = await getParameters(soil.Soil_ID);
@@ -124,17 +126,57 @@ export default function SoilDetailsScreen() {
         }
     }
 
-    const handleEditComments = () => {
-        setIsEditingComments(true);
+    const handleOpenFullScreenComments = () => {
+        setFullScreenComments(latestParameter?.Comments || '');
+        setIsFullScreenModalVisible(true);
     }
 
-    const handleCancelEdit = () => {
-        setEditableComments(latestParameter?.Comments || '');
-        setIsEditingComments(false);
+    const handleSaveFullScreenComments = async () => {
+        if (!latestParameter) return;
+        
+        setIsSaving(true);
+        try {
+            const parameterData: ParameterRequest = {
+                Hum: latestParameter.Hum,
+                Temp: latestParameter.Temp,
+                Ec: latestParameter.Ec,
+                Ph: latestParameter.Ph,
+                Nitrogen: latestParameter.Nitrogen,
+                Phosphorus: latestParameter.Phosphorus,
+                Potassium: latestParameter.Potassium,
+                Comments: fullScreenComments
+            };
+
+            const updateParameterData: UpdateParameterRequest = {
+                Soil_ID: idToNumber(soil.Soil_ID).toString(),
+                Parameters: parameterData
+            };
+
+            await saveParameterData(updateParameterData);
+            
+            setIsFullScreenModalVisible(false);
+            Alert.alert('Success', 'Comments updated successfully!', [
+                {
+                    text: 'OK',
+                    onPress: () => navigation.navigate('DashboardScreen')
+                }
+            ]);
+        } catch (error) {
+            console.error('Error saving comments:', error);
+            Alert.alert('Error', 'Failed to save comments. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }
+
+    const handleCancelFullScreenComments = () => {
+        setFullScreenComments(latestParameter?.Comments || '');
+        setIsFullScreenModalVisible(false);
     }
 
     return (
-        <ScrollView>
+        <>
+            <ScrollView>
             <View style={dashboardStyles.container}>
                  <View style={dashboardStyles.section}>
                      <Text style={dashboardStyles.title}>Soil Details</Text>
@@ -227,82 +269,33 @@ export default function SoilDetailsScreen() {
                                                 borderWidth: 2,
                                             }
                                         ]} 
-                                        value={editableComments} 
-                                        editable={isEditingComments}
+                                        value={latestParameter.Comments || ''} 
                                         multiline 
-                                        numberOfLines={3}
-                                        onChangeText={setEditableComments}
-                                        placeholder="Add comments about this reading..."
+                                        numberOfLines={5}
                                     />
                                     <View style={{
                                         flexDirection: 'row',
-                                        justifyContent: 'flex-end',
                                         marginTop: 8,
                                         gap: 8,
                                     }}>
-                                        {!isEditingComments ? (
-                                            <TouchableOpacity 
-                                                style={{
-                                                    paddingHorizontal: 16,
-                                                    paddingVertical: 8,
-                                                    borderRadius: 6,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    minWidth: 80,
-                                                    backgroundColor: colors.info,
-                                                }}
-                                                onPress={handleEditComments}
-                                            >
-                                                <Text style={{
-                                                    fontSize: 14,
-                                                    fontWeight: '600',
-                                                    color: colors.light,
-                                                }}>Edit Comments</Text>
-                                            </TouchableOpacity>
-                                        ) : (
-                                            <View style={{ flexDirection: 'row', gap: 8 }}>
-                                                <TouchableOpacity 
-                                                    style={{
-                                                        paddingHorizontal: 16,
-                                                        paddingVertical: 8,
-                                                        borderRadius: 6,
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        minWidth: 80,
-                                                        backgroundColor: colors.success,
-                                                    }}
-                                                    onPress={handleSaveComments}
-                                                    disabled={isSaving}
-                                                >
-                                                    <Text style={{
-                                                        fontSize: 14,
-                                                        fontWeight: '600',
-                                                        color: colors.light,
-                                                    }}>
-                                                        {isSaving ? 'Saving...' : 'Save'}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity 
-                                                    style={{
-                                                        paddingHorizontal: 16,
-                                                        paddingVertical: 8,
-                                                        borderRadius: 6,
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        minWidth: 80,
-                                                        backgroundColor: colors.danger,
-                                                    }}
-                                                    onPress={handleCancelEdit}
-                                                    disabled={isSaving}
-                                                >
-                                                    <Text style={{
-                                                        fontSize: 14,
-                                                        fontWeight: '600',
-                                                        color: colors.light,
-                                                    }}>Cancel</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        )}
+                                        <TouchableOpacity 
+                                            style={{
+                                                paddingHorizontal: 16,
+                                                paddingVertical: 8,
+                                                borderRadius: 6,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minWidth: 80,
+                                                backgroundColor: colors.primary,
+                                            }}
+                                            onPress={handleOpenFullScreenComments}
+                                        >
+                                            <Text style={{
+                                                fontSize: 14,
+                                                fontWeight: '600',
+                                                color: colors.light,
+                                            }}>Full Screen</Text>
+                                        </TouchableOpacity>
                                     </View>
                                 </View>
                             </View>
@@ -317,7 +310,7 @@ export default function SoilDetailsScreen() {
                  </View>
                  <View style={dashboardStyles.section}>
                     <Text style={dashboardStyles.title}>Readings List</Text>
-                    <ScrollView
+                    {/* <ScrollView
                         horizontal
                         nestedScrollEnabled
                         style={dashboardStyles.tableOuterScroll}
@@ -330,11 +323,123 @@ export default function SoilDetailsScreen() {
                          <ScrollView nestedScrollEnabled style={dashboardStyles.tableInnerScroll}>
                              <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
                          </ScrollView>
+                    </ScrollView> */}
+                    <ScrollView
+                        horizontal>
+                            <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
                     </ScrollView>
                 </View>
             </View>
         </ScrollView>
-    );
+        
+        {/* Full Screen Comments Modal */}
+        <Modal
+            animationType="slide"
+            transparent={false}
+            visible={isFullScreenModalVisible}
+            onRequestClose={handleCancelFullScreenComments}
+        >
+            <View style={{
+                flex: 1,
+                backgroundColor: colors.bgLight,
+                padding: 20,
+            }}>
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 20,
+                    paddingBottom: 15,
+                    borderBottomWidth: 2,
+                    borderBottomColor: colors.secondary,
+                }}>
+                    <Text style={{
+                        fontSize: 24,
+                        fontWeight: 'bold',
+                        color: colors.dark,
+                    }}>Edit Comments</Text>
+                    <TouchableOpacity
+                        onPress={handleCancelFullScreenComments}
+                        style={{
+                            padding: 8,
+                            borderRadius: 20,
+                            backgroundColor: colors.danger,
+                        }}
+                    >
+                        <Text style={{
+                            color: colors.light,
+                            fontSize: 18,
+                            fontWeight: 'bold',
+                        }}>×</Text>
+                    </TouchableOpacity>
+                </View>
+                
+                <TextInput
+                    style={{
+                        flex: 1,
+                        backgroundColor: colors.bgLight2,
+                        borderRadius: 12,
+                        padding: 16,
+                        fontSize: 16,
+                        textAlignVertical: 'top',
+                        borderWidth: 2,
+                        borderColor: colors.secondary,
+                        marginBottom: 20,
+                    }}
+                    value={fullScreenComments}
+                    onChangeText={setFullScreenComments}
+                    multiline
+                    placeholder="Add detailed comments about this soil reading..."
+                    placeholderTextColor={colors.secondary}
+                />
+                
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                }}>
+                    <TouchableOpacity
+                        style={{
+                            flex: 1,
+                            paddingVertical: 16,
+                            borderRadius: 12,
+                            backgroundColor: colors.danger,
+                            alignItems: 'center',
+                        }}
+                        onPress={handleCancelFullScreenComments}
+                        disabled={isSaving}
+                    >
+                        <Text style={{
+                            fontSize: 16,
+                            fontWeight: '600',
+                            color: colors.light,
+                        }}>Cancel</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                        style={{
+                            flex: 1,
+                            paddingVertical: 16,
+                            borderRadius: 12,
+                            backgroundColor: colors.success,
+                            alignItems: 'center',
+                        }}
+                        onPress={handleSaveFullScreenComments}
+                        disabled={isSaving}
+                    >
+                        <Text style={{
+                            fontSize: 16,
+                            fontWeight: '600',
+                            color: colors.light,
+                        }}>
+                            {isSaving ? 'Saving...' : 'Save Comments'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+             </Modal>
+         </>
+     );
 }
 
 function TableComponent({parametersData, onRowPress}: {parametersData: ParameterList[]; onRowPress?: (parameter: ParameterList) => void}) {
