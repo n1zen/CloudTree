@@ -20,6 +20,8 @@ export default function SoilDetailsScreen() {
     const route = useRoute<SoilDetailsRouteProp>();
     const { soil } = route.params;
     const [parameters, setParameters] = useState<ParameterList[]>([]);
+    const [filteredParameters, setFilteredParameters] = useState<ParameterList[]>([]);
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const [latestParameter, setLatestParameter] = useState<ParameterList | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isFullScreenModalVisible, setIsFullScreenModalVisible] = useState<boolean>(false);
@@ -44,11 +46,31 @@ export default function SoilDetailsScreen() {
         const sorted = [...newParameters].sort((a, b) => getTime(b) - getTime(a)); // newest first
         console.log('Sorted parameters (desc by time):', sorted.map(p => ({ id: p.Parameter_ID, created: p.Date_Recorded, recorded: (p as any).Date_Recorded })));
         setParameters(sorted);
+        setFilteredParameters(sorted);
         setLatestParameter(sorted[0] ?? null);
     }
     useEffect(() => {
         fetchParameters();
     }, []);
+
+    // Filter function for parameters
+    const filterParameters = (query: string) => {
+        if (!query.trim()) {
+            setFilteredParameters(parameters);
+        } else {
+            const filtered = parameters.filter(parameter => 
+                parameter.Parameter_ID.toLowerCase().includes(query.toLowerCase()) ||
+                parameter.Date_Recorded.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredParameters(filtered);
+        }
+    };
+
+    // Handle search input change
+    const handleSearchChange = (text: string) => {
+        setSearchQuery(text);
+        filterParameters(text);
+    };
 
     const handleDelete = (parameterID: string) => {
         deleteParameter(parameterID) .then(() => {
@@ -126,12 +148,12 @@ export default function SoilDetailsScreen() {
     const handleSortOrderChange = () => {
         if (sortOrder === 'Newest First') {
             setSortOrder('Oldest First');
-            const sorted = [...parameters].sort((a, b) => idToNumber(a.Parameter_ID) - idToNumber(b.Parameter_ID));
-            setParameters(sorted);
+            const sorted = [...filteredParameters].sort((a, b) => idToNumber(a.Parameter_ID) - idToNumber(b.Parameter_ID));
+            setFilteredParameters(sorted);
         } else {
             setSortOrder('Newest First');
-            const sorted = [...parameters].sort((a, b) => idToNumber(b.Parameter_ID) - idToNumber(a.Parameter_ID));
-            setParameters(sorted);
+            const sorted = [...filteredParameters].sort((a, b) => idToNumber(b.Parameter_ID) - idToNumber(a.Parameter_ID));
+            setFilteredParameters(sorted);
         }
     }
 
@@ -266,6 +288,18 @@ export default function SoilDetailsScreen() {
                  </View>
                  <View style={dashboardStyles.section}>
                     <Text style={dashboardStyles.title}>Readings List</Text>
+                    
+                    {/* Search Input */}
+                    <View style={dashboardStyles.searchContainer}>
+                        <TextInput
+                            style={dashboardStyles.searchInput}
+                            placeholder="Search parameters by ID or date..."
+                            value={searchQuery}
+                            onChangeText={handleSearchChange}
+                            placeholderTextColor={colors.dark}
+                        />
+                    </View>
+                    
                     <View style={dashboardStyles.sortButtonContainer}>
                         <TouchableOpacity style={dashboardStyles.sortButton} onPress={handleSortOrderChange}>
                             <Text style={dashboardStyles.sortButtonText}>Sort order: {sortOrder}</Text>
@@ -281,8 +315,8 @@ export default function SoilDetailsScreen() {
                     <ScrollView
                         horizontal>
                             {
-                                parameters.length > 0 ? (
-                                    <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
+                                filteredParameters.length > 0 ? (
+                                    <TableComponent parametersData={filteredParameters} onRowPress={handleRowPress} />
                                 ) : (
                                     <Text>No readings found</Text>
                                 )
