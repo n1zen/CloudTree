@@ -89,7 +89,9 @@ const InfoContent: React.FC = () => {
                                     <Text style={infoStyles.highlightText}>{item.property}</Text>
                                     {': '}
                                     <Text style={infoStyles.rangeText}>{item.range}</Text>
-                                    {item.unit && ` ${item.unit}`}
+                                    {item.unit && (
+                                        <Text style={infoStyles.unitText}> {item.unit}</Text>
+                                    )}
                                 </Text>
                                 <Text style={infoStyles.descriptionText}>
                                     {item.description}

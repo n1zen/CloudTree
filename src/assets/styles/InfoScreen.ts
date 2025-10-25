@@ -64,6 +64,12 @@ export const infoStyles = StyleSheet.create({
         fontWeight: '600',
         color: colors.moss,
     },
+    unitText: {
+        fontSize: 12,
+        color: colors.dark,
+        opacity: 0.7,
+        fontStyle: 'italic',
+    },
     descriptionText: {
         fontSize: 13,
         color: colors.dark,
