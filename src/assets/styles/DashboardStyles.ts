@@ -207,4 +207,90 @@ export const dashboardStyles = StyleSheet.create({
     fullScreenModalSaveButton: {
         backgroundColor: colors.success,
     },
+    // Sort buttons styles
+    sortButtonContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 12,
+    },
+    sortButton: {
+        backgroundColor: colors.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 4,
+        minWidth: 100,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    sortButtonText: {
+        color: colors.light,
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    sortButtonActive: {
+        backgroundColor: colors.accent,
+    },
+    sortButtonActiveText: {
+        color: colors.light,
+        fontSize: 14,
+        fontWeight: '700',
+    },
+
+    // search input styles
+    searchContainer: {
+        marginBottom: 12,
+    },
+    searchInput: {
+        backgroundColor: colors.light,
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 14,
+        color: colors.dark,
+    },
+    searchInputFocused: {
+        borderColor: colors.accent,
+        borderWidth: 2,
+    },
+    // Dashboard Table Styles
+    dashboardTableOuterScroll: {
+        borderRadius: 8,
+        overflow: 'hidden',
+        width: '100%',
+    },
+    dashboardTableInnerScroll: {
+        maxHeight: 400,
+        width: '100%',
+    },
+    dashboardTable: {
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 8,
+        width: '100%',
+    },
+    // Soil Details Table Styles
+    soilDetailsTableOuterScroll: {
+        borderRadius: 8,
+        overflow: 'hidden',
+        width: '100%',
+    },
+    soilDetailsTableInnerScroll: {
+        maxHeight: 300,
+        width: '100%',
+    },
+    soilDetailsTable: {
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 8,
+        width: '100%',
+    },
 });

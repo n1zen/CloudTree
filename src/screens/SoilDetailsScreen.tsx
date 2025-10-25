@@ -1,4 +1,4 @@
-import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal, Touchable } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
@@ -8,6 +8,7 @@ import { Table, Row } from 'react-native-table-component';
 import { dashboardStyles } from '../assets/styles/DashboardStyles.ts';
 import { colors } from '../assets/styles/Colors.ts';
 import StatusIndicator from '../components/StatusIndicator.tsx';
+import { ChevronUpIcon, ChevronDownIcon } from 'lucide-react-native';
 
 type DashboardStackParamList = {
     SoilDetails: { soil: SoilList };
@@ -19,13 +20,17 @@ export default function SoilDetailsScreen() {
     const route = useRoute<SoilDetailsRouteProp>();
     const { soil } = route.params;
     const [parameters, setParameters] = useState<ParameterList[]>([]);
+    const [filteredParameters, setFilteredParameters] = useState<ParameterList[]>([]);
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const [latestParameter, setLatestParameter] = useState<ParameterList | null>(null);
-    const [editableComments, setEditableComments] = useState<string>('');
-    const [isEditingComments, setIsEditingComments] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isFullScreenModalVisible, setIsFullScreenModalVisible] = useState<boolean>(false);
     const [fullScreenComments, setFullScreenComments] = useState<string>('');
     const navigation = useNavigation<any>();
+    const [sortOrder, setSortOrder] = useState<string>('Newest First');
+    const [orientation, setOrientation] = useState<string>('portrait');
+
+
     const fetchParameters = async () => {
         const newParameters = await getParameters(soil.Soil_ID);
         const getTime = (p: any) => {
@@ -42,19 +47,48 @@ export default function SoilDetailsScreen() {
         const sorted = [...newParameters].sort((a, b) => getTime(b) - getTime(a)); // newest first
         console.log('Sorted parameters (desc by time):', sorted.map(p => ({ id: p.Parameter_ID, created: p.Date_Recorded, recorded: (p as any).Date_Recorded })));
         setParameters(sorted);
+        setFilteredParameters(sorted);
         setLatestParameter(sorted[0] ?? null);
     }
     useEffect(() => {
         fetchParameters();
     }, []);
 
-    // Update editable comments when latestParameter changes
+    // Orientation change listener
     useEffect(() => {
-        if (latestParameter) {
-            setEditableComments(latestParameter.Comments || '');
-            setIsEditingComments(false);
+        const updateOrientation = () => {
+            const { width, height } = Dimensions.get('window');
+            const newOrientation = width > height ? 'landscape' : 'portrait';
+            setOrientation(newOrientation);
+        };
+
+        // Set initial orientation
+        updateOrientation();
+
+        // Add orientation change listener
+        const subscription = Dimensions.addEventListener('change', updateOrientation);
+
+        return () => subscription?.remove();
+    }, []);
+
+    // Filter function for parameters
+    const filterParameters = (query: string) => {
+        if (!query.trim()) {
+            setFilteredParameters(parameters);
+        } else {
+            const filtered = parameters.filter(parameter => 
+                parameter.Parameter_ID.toLowerCase().includes(query.toLowerCase()) ||
+                parameter.Date_Recorded.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredParameters(filtered);
         }
-    }, [latestParameter]);
+    };
+
+    // Handle search input change
+    const handleSearchChange = (text: string) => {
+        setSearchQuery(text);
+        filterParameters(text);
+    };
 
     const handleDelete = (parameterID: string) => {
         deleteParameter(parameterID) .then(() => {
@@ -80,51 +114,6 @@ export default function SoilDetailsScreen() {
         setLatestParameter(parameter);
     }
 
-    const handleSaveComments = async () => {
-        if (!latestParameter) return;
-        
-        setIsSaving(true);
-        try {
-
-            const parameterData: ParameterRequest = {
-                Hum: latestParameter.Hum,
-                Temp: latestParameter.Temp,
-                Ec: latestParameter.Ec,
-                Ph: latestParameter.Ph,
-                Nitrogen: latestParameter.Nitrogen,
-                Phosphorus: latestParameter.Phosphorus,
-                Potassium: latestParameter.Potassium,
-                Comments: editableComments
-            };
-
-            const updateParameterData: UpdateParameterRequest = {
-                Soil_ID: idToNumber(soil.Soil_ID).toString(),
-                Parameters: parameterData
-            };
-
-            await saveParameterData(updateParameterData);
-            
-            // Update the local state
-            const updatedParameter = { ...latestParameter, Comments: editableComments };
-            setLatestParameter(updatedParameter);
-            
-            // Update the parameters list
-            const updatedParameters = parameters.map(p => 
-                p.Parameter_ID === latestParameter.Parameter_ID 
-                    ? updatedParameter 
-                    : p
-            );
-            setParameters(updatedParameters);
-            
-            setIsEditingComments(false);
-            Alert.alert('Success', 'Comments updated successfully!');
-        } catch (error) {
-            console.error('Failed to save comments:', error);
-            Alert.alert('Error', 'Failed to save comments. Please try again.');
-        } finally {
-            setIsSaving(false);
-        }
-    }
 
     const handleOpenFullScreenComments = () => {
         setFullScreenComments(latestParameter?.Comments || '');
@@ -155,15 +144,15 @@ export default function SoilDetailsScreen() {
             await saveParameterData(updateParameterData);
             
             setIsFullScreenModalVisible(false);
-            Alert.alert('Success', 'Comments updated successfully!', [
+            Alert.alert('Success',`Successfully updated comments for:\nSoil ID: ${soil.Soil_ID}\nSoil Name: ${soil.Soil_Name}`, [
                 {
                     text: 'OK',
-                    onPress: () => navigation.navigate('DashboardScreen')
+                    onPress: () => fetchParameters()
                 }
             ]);
         } catch (error) {
             console.error('Error saving comments:', error);
-            Alert.alert('Error', 'Failed to save comments. Please try again.');
+            Alert.alert('Error', `Failed to save comments for soil ${soil.Soil_ID}: ${soil.Soil_Name}. Please try again.`);
         } finally {
             setIsSaving(false);
         }
@@ -172,6 +161,18 @@ export default function SoilDetailsScreen() {
     const handleCancelFullScreenComments = () => {
         setFullScreenComments(latestParameter?.Comments || '');
         setIsFullScreenModalVisible(false);
+    }
+
+    const handleSortOrderChange = () => {
+        if (sortOrder === 'Newest First') {
+            setSortOrder('Oldest First');
+            const sorted = [...filteredParameters].sort((a, b) => idToNumber(a.Parameter_ID) - idToNumber(b.Parameter_ID));
+            setFilteredParameters(sorted);
+        } else {
+            setSortOrder('Newest First');
+            const sorted = [...filteredParameters].sort((a, b) => idToNumber(b.Parameter_ID) - idToNumber(a.Parameter_ID));
+            setFilteredParameters(sorted);
+        }
     }
 
     return (
@@ -263,11 +264,6 @@ export default function SoilDetailsScreen() {
                                     <TextInput 
                                         style={[
                                             dashboardStyles.textareaReadOnly,
-                                            isEditingComments && {
-                                                backgroundColor: colors.light,
-                                                borderColor: colors.primary,
-                                                borderWidth: 2,
-                                            }
                                         ]} 
                                         value={latestParameter.Comments || ''} 
                                         multiline 
@@ -310,10 +306,37 @@ export default function SoilDetailsScreen() {
                  </View>
                  <View style={dashboardStyles.section}>
                     <Text style={dashboardStyles.title}>Readings List</Text>
-                    <ScrollView
-                        horizontal>
-                            <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
-                    </ScrollView>
+                    
+                    {/* Search Input */}
+                    <View style={dashboardStyles.searchContainer}>
+                        <TextInput
+                            style={dashboardStyles.searchInput}
+                            placeholder="Search parameters by ID or date..."
+                            value={searchQuery}
+                            onChangeText={handleSearchChange}
+                            placeholderTextColor={colors.dark}
+                        />
+                    </View>
+                    
+                    <View style={dashboardStyles.sortButtonContainer}>
+                        <TouchableOpacity style={dashboardStyles.sortButton} onPress={handleSortOrderChange}>
+                            <Text style={dashboardStyles.sortButtonText}>Sort order: {sortOrder}</Text>
+                            {
+                                sortOrder === 'Newest First' ? (
+                                    <ChevronUpIcon color={colors.light} />
+                                ) : (
+                                    <ChevronDownIcon color={colors.light} />
+                                )
+                            }
+                        </TouchableOpacity>
+                    </View>
+                    {
+                        filteredParameters.length > 0 ? (
+                            <TableComponent parametersData={filteredParameters} onRowPress={handleRowPress} orientation={orientation} />
+                        ) : (
+                            <Text>No readings found</Text>
+                        )
+                    }
                 </View>
             </View>
         </ScrollView>
@@ -370,30 +393,57 @@ export default function SoilDetailsScreen() {
      );
 }
 
-function TableComponent({parametersData, onRowPress}: {parametersData: ParameterList[]; onRowPress?: (parameter: ParameterList) => void}) {
+function TableComponent({parametersData, onRowPress, orientation}: {parametersData: ParameterList[]; onRowPress?: (parameter: ParameterList) => void; orientation: string}) {
 
     const header = ['Parameter ID', 'Date Recorded'] 
-    const widthArr = [130, 220]
-    const tableWidth = widthArr.reduce((sum, w) => sum + w, 0)
     const screenWidth = Dimensions.get('window').width
+    const isLandscape = orientation === 'landscape'
+    
+    let widthArr, tableWidth, horizContentWidth
+    
+    if (isLandscape) {
+        // Use full of screen width in landscape
+        const landscapeWidth = screenWidth * 1
+        widthArr = [landscapeWidth * 0.4, landscapeWidth * 0.6] // 40% for ID, 60% for Date
+        tableWidth = landscapeWidth
+        horizContentWidth = landscapeWidth
+    } else {
+        // Static column widths for portrait
+        widthArr = [150, 250] // Fixed widths for each column
+        tableWidth = widthArr.reduce((sum, w) => sum + w, 0) // Total table width
+        horizContentWidth = tableWidth
+    }
 
     return (
-        <Table style={[dashboardStyles.table, { width: tableWidth }]} borderStyle={{ borderWidth: 1, borderColor: '#4a7c59' }}>
-            <Row data={header} widthArr={widthArr} style={dashboardStyles.tableHeader} textStyle={dashboardStyles.tableHeaderText} />
-            {parametersData.length === 0 ? (
-                <Row data={["", ""]} widthArr={widthArr} style={dashboardStyles.tableRow} />
-            ) : (
-                parametersData.map((parameter, idx) => (
-                    <TouchableOpacity key={parameter.Parameter_ID} activeOpacity={0.6} onPress={() => onRowPress?.(parameter)}>
-                        <Row
-                            data={[parameter.Parameter_ID, parameter.Date_Recorded]}
-                            widthArr={widthArr}
-                            style={idx % 2 === 0 ? dashboardStyles.tableRow : dashboardStyles.tableRowAlt}
-                            textStyle={dashboardStyles.tableRowText}
-                        />
-                    </TouchableOpacity>
-                ))
-            )}
-        </Table>
+        <ScrollView
+            horizontal
+            nestedScrollEnabled
+            style={dashboardStyles.soilDetailsTableOuterScroll}
+            contentContainerStyle={{ width: horizContentWidth }}
+            showsHorizontalScrollIndicator
+            persistentScrollbar
+            keyboardShouldPersistTaps="handled"
+            directionalLockEnabled
+        >
+            <ScrollView nestedScrollEnabled style={dashboardStyles.soilDetailsTableInnerScroll}>
+                <Table style={[dashboardStyles.soilDetailsTable, { width: tableWidth }]} borderStyle={{ borderWidth: 1, borderColor: '#4a7c59' }}>
+                    <Row data={header} widthArr={widthArr} style={dashboardStyles.tableHeader} textStyle={dashboardStyles.tableHeaderText} />
+                    {parametersData.length === 0 ? (
+                        <Row data={["", ""]} widthArr={widthArr} style={dashboardStyles.tableRow} />
+                    ) : (
+                        parametersData.map((parameter, idx) => (
+                            <TouchableOpacity key={parameter.Parameter_ID} activeOpacity={0.6} onPress={() => onRowPress?.(parameter)}>
+                                <Row
+                                    data={[parameter.Parameter_ID, parameter.Date_Recorded]}
+                                    widthArr={widthArr}
+                                    style={idx % 2 === 0 ? dashboardStyles.tableRow : dashboardStyles.tableRowAlt}
+                                    textStyle={dashboardStyles.tableRowText}
+                                />
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </Table>
+            </ScrollView>
+        </ScrollView>
     )
 }
