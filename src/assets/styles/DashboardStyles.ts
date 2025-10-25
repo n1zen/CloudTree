@@ -242,4 +242,23 @@ export const dashboardStyles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
     },
+
+    // search input styles
+    searchContainer: {
+        marginBottom: 12,
+    },
+    searchInput: {
+        backgroundColor: colors.light,
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 14,
+        color: colors.dark,
+    },
+    searchInputFocused: {
+        borderColor: colors.accent,
+        borderWidth: 2,
+    }
 });
