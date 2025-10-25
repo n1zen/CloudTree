@@ -30,7 +30,6 @@ export default function DashboardScreen({ navigation }: { navigation: any }) {
     }, []);
 
     useEffect(() => {
-        console.log('soils', soils);
         filterSoils(searchQuery);
     }, [soils]);
 

@@ -1,4 +1,4 @@
-import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal, Touchable } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
@@ -8,6 +8,7 @@ import { Table, Row } from 'react-native-table-component';
 import { dashboardStyles } from '../assets/styles/DashboardStyles.ts';
 import { colors } from '../assets/styles/Colors.ts';
 import StatusIndicator from '../components/StatusIndicator.tsx';
+import { ChevronUpIcon, ChevronDownIcon } from 'lucide-react-native';
 
 type DashboardStackParamList = {
     SoilDetails: { soil: SoilList };
@@ -20,12 +21,13 @@ export default function SoilDetailsScreen() {
     const { soil } = route.params;
     const [parameters, setParameters] = useState<ParameterList[]>([]);
     const [latestParameter, setLatestParameter] = useState<ParameterList | null>(null);
-    const [editableComments, setEditableComments] = useState<string>('');
-    const [isEditingComments, setIsEditingComments] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isFullScreenModalVisible, setIsFullScreenModalVisible] = useState<boolean>(false);
     const [fullScreenComments, setFullScreenComments] = useState<string>('');
     const navigation = useNavigation<any>();
+    const [sortOrder, setSortOrder] = useState<string>('Newest First');
+
+
     const fetchParameters = async () => {
         const newParameters = await getParameters(soil.Soil_ID);
         const getTime = (p: any) => {
@@ -47,14 +49,6 @@ export default function SoilDetailsScreen() {
     useEffect(() => {
         fetchParameters();
     }, []);
-
-    // Update editable comments when latestParameter changes
-    useEffect(() => {
-        if (latestParameter) {
-            setEditableComments(latestParameter.Comments || '');
-            setIsEditingComments(false);
-        }
-    }, [latestParameter]);
 
     const handleDelete = (parameterID: string) => {
         deleteParameter(parameterID) .then(() => {
@@ -80,51 +74,6 @@ export default function SoilDetailsScreen() {
         setLatestParameter(parameter);
     }
 
-    const handleSaveComments = async () => {
-        if (!latestParameter) return;
-        
-        setIsSaving(true);
-        try {
-
-            const parameterData: ParameterRequest = {
-                Hum: latestParameter.Hum,
-                Temp: latestParameter.Temp,
-                Ec: latestParameter.Ec,
-                Ph: latestParameter.Ph,
-                Nitrogen: latestParameter.Nitrogen,
-                Phosphorus: latestParameter.Phosphorus,
-                Potassium: latestParameter.Potassium,
-                Comments: editableComments
-            };
-
-            const updateParameterData: UpdateParameterRequest = {
-                Soil_ID: idToNumber(soil.Soil_ID).toString(),
-                Parameters: parameterData
-            };
-
-            await saveParameterData(updateParameterData);
-            
-            // Update the local state
-            const updatedParameter = { ...latestParameter, Comments: editableComments };
-            setLatestParameter(updatedParameter);
-            
-            // Update the parameters list
-            const updatedParameters = parameters.map(p => 
-                p.Parameter_ID === latestParameter.Parameter_ID 
-                    ? updatedParameter 
-                    : p
-            );
-            setParameters(updatedParameters);
-            
-            setIsEditingComments(false);
-            Alert.alert('Success', 'Comments updated successfully!');
-        } catch (error) {
-            console.error('Failed to save comments:', error);
-            Alert.alert('Error', 'Failed to save comments. Please try again.');
-        } finally {
-            setIsSaving(false);
-        }
-    }
 
     const handleOpenFullScreenComments = () => {
         setFullScreenComments(latestParameter?.Comments || '');
@@ -155,15 +104,15 @@ export default function SoilDetailsScreen() {
             await saveParameterData(updateParameterData);
             
             setIsFullScreenModalVisible(false);
-            Alert.alert('Success', 'Comments updated successfully!', [
+            Alert.alert('Success',`Successfully updated comments for:\nSoil ID: ${soil.Soil_ID}\nSoil Name: ${soil.Soil_Name}`, [
                 {
                     text: 'OK',
-                    onPress: () => navigation.navigate('DashboardScreen')
+                    onPress: () => fetchParameters()
                 }
             ]);
         } catch (error) {
             console.error('Error saving comments:', error);
-            Alert.alert('Error', 'Failed to save comments. Please try again.');
+            Alert.alert('Error', `Failed to save comments for soil ${soil.Soil_ID}: ${soil.Soil_Name}. Please try again.`);
         } finally {
             setIsSaving(false);
         }
@@ -172,6 +121,18 @@ export default function SoilDetailsScreen() {
     const handleCancelFullScreenComments = () => {
         setFullScreenComments(latestParameter?.Comments || '');
         setIsFullScreenModalVisible(false);
+    }
+
+    const handleSortOrderChange = () => {
+        if (sortOrder === 'Newest First') {
+            setSortOrder('Oldest First');
+            const sorted = [...parameters].sort((a, b) => idToNumber(a.Parameter_ID) - idToNumber(b.Parameter_ID));
+            setParameters(sorted);
+        } else {
+            setSortOrder('Newest First');
+            const sorted = [...parameters].sort((a, b) => idToNumber(b.Parameter_ID) - idToNumber(a.Parameter_ID));
+            setParameters(sorted);
+        }
     }
 
     return (
@@ -263,11 +224,6 @@ export default function SoilDetailsScreen() {
                                     <TextInput 
                                         style={[
                                             dashboardStyles.textareaReadOnly,
-                                            isEditingComments && {
-                                                backgroundColor: colors.light,
-                                                borderColor: colors.primary,
-                                                borderWidth: 2,
-                                            }
                                         ]} 
                                         value={latestParameter.Comments || ''} 
                                         multiline 
@@ -310,9 +266,27 @@ export default function SoilDetailsScreen() {
                  </View>
                  <View style={dashboardStyles.section}>
                     <Text style={dashboardStyles.title}>Readings List</Text>
+                    <View style={dashboardStyles.sortButtonContainer}>
+                        <TouchableOpacity style={dashboardStyles.sortButton} onPress={handleSortOrderChange}>
+                            <Text style={dashboardStyles.sortButtonText}>Sort order: {sortOrder}</Text>
+                            {
+                                sortOrder === 'Newest First' ? (
+                                    <ChevronUpIcon color={colors.light} />
+                                ) : (
+                                    <ChevronDownIcon color={colors.light} />
+                                )
+                            }
+                        </TouchableOpacity>
+                    </View>
                     <ScrollView
                         horizontal>
-                            <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
+                            {
+                                parameters.length > 0 ? (
+                                    <TableComponent parametersData={parameters} onRowPress={handleRowPress} />
+                                ) : (
+                                    <Text>No readings found</Text>
+                                )
+                            }
                     </ScrollView>
                 </View>
             </View>
