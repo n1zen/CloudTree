@@ -17,6 +17,7 @@ export default function DashboardScreen({ navigation }: { navigation: any }) {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filteredSoils, setFilteredSoils] = useState<SoilList[]>([]);
     const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+    const [orientation, setOrientation] = useState<string>('portrait');
 
     const getSoils = async () => {
         const newSoils = await getSoil();
@@ -32,6 +33,23 @@ export default function DashboardScreen({ navigation }: { navigation: any }) {
     useEffect(() => {
         filterSoils(searchQuery);
     }, [soils]);
+
+    // Orientation change listener
+    useEffect(() => {
+        const updateOrientation = () => {
+            const { width, height } = Dimensions.get('window');
+            const newOrientation = width > height ? 'landscape' : 'portrait';
+            setOrientation(newOrientation);
+        };
+
+        // Set initial orientation
+        updateOrientation();
+
+        // Add orientation change listener
+        const subscription = Dimensions.addEventListener('change', updateOrientation);
+
+        return () => subscription?.remove();
+    }, []);
 
     const handleRowPress = (soil: SoilList) => {
         console.log('Row pressed:', soil);
@@ -128,7 +146,7 @@ export default function DashboardScreen({ navigation }: { navigation: any }) {
                         </TouchableOpacity>
                     </View>
                     {filteredSoils.length > 0 ? (
-                        <TableComponent soilsData={filteredSoils} onRowPress={handleRowPress} />
+                        <TableComponent soilsData={filteredSoils} onRowPress={handleRowPress} orientation={orientation} />
                     ) : (
                         <Text>No results found</Text>
                     )}
@@ -138,29 +156,40 @@ export default function DashboardScreen({ navigation }: { navigation: any }) {
     );
 }
 
-function TableComponent({soilsData, onRowPress}: {soilsData: SoilList[]; onRowPress?: (soil: SoilList) => void}) {
+function TableComponent({soilsData, onRowPress, orientation}: {soilsData: SoilList[]; onRowPress?: (soil: SoilList) => void; orientation: string}) {
 
     const header = ['Soil ID', 'Soil Name', 'Latitude', 'Longitude']
     const screenWidth = Dimensions.get('window').width
-    // Account for container padding (16px on each side) and section padding (12px on each side)
-    const availableWidth = screenWidth - 32 - 24 // 32 for container padding, 24 for section padding
-    const widthArr = [availableWidth * 0.2, availableWidth * 0.35, availableWidth * 0.225, availableWidth * 0.225]
-    const tableWidth = availableWidth
-    const horizContentWidth = availableWidth
+    const isLandscape = orientation === 'landscape'
+    
+    let widthArr, tableWidth, horizContentWidth
+    
+    if (isLandscape) {
+        // Use full of screen width in landscape
+        const landscapeWidth = screenWidth * 1
+        widthArr = [landscapeWidth * 0.2, landscapeWidth * 0.35, landscapeWidth * 0.225, landscapeWidth * 0.225]
+        tableWidth = landscapeWidth
+        horizContentWidth = landscapeWidth
+    } else {
+        // Static column widths for portrait
+        widthArr = [100, 200, 150, 150] // Fixed widths for each column
+        tableWidth = widthArr.reduce((sum, w) => sum + w, 0) // Total table width
+        horizContentWidth = tableWidth
+    }
 
     return (
         <ScrollView
             horizontal
             nestedScrollEnabled
-            style={dashboardStyles.tableOuterScroll}
+            style={dashboardStyles.dashboardTableOuterScroll}
             contentContainerStyle={{ width: horizContentWidth }}
             showsHorizontalScrollIndicator
             persistentScrollbar
             keyboardShouldPersistTaps="handled"
             directionalLockEnabled
         >
-            <ScrollView nestedScrollEnabled style={dashboardStyles.tableInnerScroll}>
-                <Table style={[dashboardStyles.table, { width: tableWidth }]} borderStyle={{ borderWidth: 1, borderColor: '#4a7c59' }}>
+            <ScrollView nestedScrollEnabled style={dashboardStyles.dashboardTableInnerScroll}>
+                <Table style={[dashboardStyles.dashboardTable, { width: tableWidth }]} borderStyle={{ borderWidth: 1, borderColor: '#4a7c59' }}>
                     <Row data={header} widthArr={widthArr} style={dashboardStyles.tableHeader} textStyle={dashboardStyles.tableHeaderText} />
                     {soilsData.length === 0 ? (
                         <Row data={["", "", "", ""]} widthArr={widthArr} style={dashboardStyles.tableRow} />

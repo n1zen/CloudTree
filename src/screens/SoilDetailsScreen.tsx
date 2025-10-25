@@ -28,6 +28,7 @@ export default function SoilDetailsScreen() {
     const [fullScreenComments, setFullScreenComments] = useState<string>('');
     const navigation = useNavigation<any>();
     const [sortOrder, setSortOrder] = useState<string>('Newest First');
+    const [orientation, setOrientation] = useState<string>('portrait');
 
 
     const fetchParameters = async () => {
@@ -51,6 +52,23 @@ export default function SoilDetailsScreen() {
     }
     useEffect(() => {
         fetchParameters();
+    }, []);
+
+    // Orientation change listener
+    useEffect(() => {
+        const updateOrientation = () => {
+            const { width, height } = Dimensions.get('window');
+            const newOrientation = width > height ? 'landscape' : 'portrait';
+            setOrientation(newOrientation);
+        };
+
+        // Set initial orientation
+        updateOrientation();
+
+        // Add orientation change listener
+        const subscription = Dimensions.addEventListener('change', updateOrientation);
+
+        return () => subscription?.remove();
     }, []);
 
     // Filter function for parameters
@@ -312,16 +330,13 @@ export default function SoilDetailsScreen() {
                             }
                         </TouchableOpacity>
                     </View>
-                    <ScrollView
-                        horizontal>
-                            {
-                                filteredParameters.length > 0 ? (
-                                    <TableComponent parametersData={filteredParameters} onRowPress={handleRowPress} />
-                                ) : (
-                                    <Text>No readings found</Text>
-                                )
-                            }
-                    </ScrollView>
+                    {
+                        filteredParameters.length > 0 ? (
+                            <TableComponent parametersData={filteredParameters} onRowPress={handleRowPress} orientation={orientation} />
+                        ) : (
+                            <Text>No readings found</Text>
+                        )
+                    }
                 </View>
             </View>
         </ScrollView>
@@ -378,30 +393,57 @@ export default function SoilDetailsScreen() {
      );
 }
 
-function TableComponent({parametersData, onRowPress}: {parametersData: ParameterList[]; onRowPress?: (parameter: ParameterList) => void}) {
+function TableComponent({parametersData, onRowPress, orientation}: {parametersData: ParameterList[]; onRowPress?: (parameter: ParameterList) => void; orientation: string}) {
 
     const header = ['Parameter ID', 'Date Recorded'] 
-    const widthArr = [130, 220]
-    const tableWidth = widthArr.reduce((sum, w) => sum + w, 0)
     const screenWidth = Dimensions.get('window').width
+    const isLandscape = orientation === 'landscape'
+    
+    let widthArr, tableWidth, horizContentWidth
+    
+    if (isLandscape) {
+        // Use full of screen width in landscape
+        const landscapeWidth = screenWidth * 1
+        widthArr = [landscapeWidth * 0.4, landscapeWidth * 0.6] // 40% for ID, 60% for Date
+        tableWidth = landscapeWidth
+        horizContentWidth = landscapeWidth
+    } else {
+        // Static column widths for portrait
+        widthArr = [150, 250] // Fixed widths for each column
+        tableWidth = widthArr.reduce((sum, w) => sum + w, 0) // Total table width
+        horizContentWidth = tableWidth
+    }
 
     return (
-        <Table style={[dashboardStyles.table, { width: tableWidth }]} borderStyle={{ borderWidth: 1, borderColor: '#4a7c59' }}>
-            <Row data={header} widthArr={widthArr} style={dashboardStyles.tableHeader} textStyle={dashboardStyles.tableHeaderText} />
-            {parametersData.length === 0 ? (
-                <Row data={["", ""]} widthArr={widthArr} style={dashboardStyles.tableRow} />
-            ) : (
-                parametersData.map((parameter, idx) => (
-                    <TouchableOpacity key={parameter.Parameter_ID} activeOpacity={0.6} onPress={() => onRowPress?.(parameter)}>
-                        <Row
-                            data={[parameter.Parameter_ID, parameter.Date_Recorded]}
-                            widthArr={widthArr}
-                            style={idx % 2 === 0 ? dashboardStyles.tableRow : dashboardStyles.tableRowAlt}
-                            textStyle={dashboardStyles.tableRowText}
-                        />
-                    </TouchableOpacity>
-                ))
-            )}
-        </Table>
+        <ScrollView
+            horizontal
+            nestedScrollEnabled
+            style={dashboardStyles.soilDetailsTableOuterScroll}
+            contentContainerStyle={{ width: horizContentWidth }}
+            showsHorizontalScrollIndicator
+            persistentScrollbar
+            keyboardShouldPersistTaps="handled"
+            directionalLockEnabled
+        >
+            <ScrollView nestedScrollEnabled style={dashboardStyles.soilDetailsTableInnerScroll}>
+                <Table style={[dashboardStyles.soilDetailsTable, { width: tableWidth }]} borderStyle={{ borderWidth: 1, borderColor: '#4a7c59' }}>
+                    <Row data={header} widthArr={widthArr} style={dashboardStyles.tableHeader} textStyle={dashboardStyles.tableHeaderText} />
+                    {parametersData.length === 0 ? (
+                        <Row data={["", ""]} widthArr={widthArr} style={dashboardStyles.tableRow} />
+                    ) : (
+                        parametersData.map((parameter, idx) => (
+                            <TouchableOpacity key={parameter.Parameter_ID} activeOpacity={0.6} onPress={() => onRowPress?.(parameter)}>
+                                <Row
+                                    data={[parameter.Parameter_ID, parameter.Date_Recorded]}
+                                    widthArr={widthArr}
+                                    style={idx % 2 === 0 ? dashboardStyles.tableRow : dashboardStyles.tableRowAlt}
+                                    textStyle={dashboardStyles.tableRowText}
+                                />
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </Table>
+            </ScrollView>
+        </ScrollView>
     )
 }

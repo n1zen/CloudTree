@@ -260,5 +260,37 @@ export const dashboardStyles = StyleSheet.create({
     searchInputFocused: {
         borderColor: colors.accent,
         borderWidth: 2,
-    }
+    },
+    // Dashboard Table Styles
+    dashboardTableOuterScroll: {
+        borderRadius: 8,
+        overflow: 'hidden',
+        width: '100%',
+    },
+    dashboardTableInnerScroll: {
+        maxHeight: 400,
+        width: '100%',
+    },
+    dashboardTable: {
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 8,
+        width: '100%',
+    },
+    // Soil Details Table Styles
+    soilDetailsTableOuterScroll: {
+        borderRadius: 8,
+        overflow: 'hidden',
+        width: '100%',
+    },
+    soilDetailsTableInnerScroll: {
+        maxHeight: 300,
+        width: '100%',
+    },
+    soilDetailsTable: {
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 8,
+        width: '100%',
+    },
 });
