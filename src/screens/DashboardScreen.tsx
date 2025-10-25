@@ -4,12 +4,16 @@ import { useEffect, useState } from 'react';
 import { Table, Row } from 'react-native-table-component';
 
 import { dashboardStyles } from '../assets/styles/DashboardStyles.ts';
-import { getSoil } from '../lib/axios.ts';
+import { getSoil, idToNumber } from '../lib/axios.ts';
 import { SoilList } from '../lib/types.ts';
+import { ChevronUpIcon, ChevronDownIcon } from 'lucide-react-native';
+import { colors } from '../assets/styles/Colors.ts';
 
 export default function DashboardScreen({ navigation }: { navigation: any }) {
 
     const [soils, setSoils] = useState<SoilList[]>([]);
+    const [sortBy, setSortBy] = useState<string>('id');
+    const [sortOrder, setSortOrder] = useState<string>('asc');
 
     const getSoils = async () => {
         const newSoils = await getSoil();
@@ -31,23 +35,79 @@ export default function DashboardScreen({ navigation }: { navigation: any }) {
         navigation.navigate('SoilDetails', { soil });
     };
 
+    const sortBtID = () => {
+        setSortBy('id');
+        if (sortOrder === 'asc') {
+            const sortedSoils = [...soils].sort((a, b) => idToNumber(b.Soil_ID) - idToNumber(a.Soil_ID))
+            setSoils(sortedSoils);
+            setSortOrder('desc');
+        } else {
+            const sortedSoils = [...soils].sort((a, b) => idToNumber(a.Soil_ID) - idToNumber(b.Soil_ID));
+            setSoils(sortedSoils);
+            setSortOrder('asc');
+        }
+    }
+
+    const sortByName = () => {
+        setSortBy('name');
+        if (sortOrder === 'asc') {
+            const sortedSoils = [...soils].sort((a, b) => b.Soil_Name.localeCompare(a.Soil_Name));
+            setSoils(sortedSoils);
+            setSortOrder('desc');
+        } else {
+            const sortedSoils = [...soils].sort((a, b) => a.Soil_Name.localeCompare(b.Soil_Name));
+            setSoils(sortedSoils);
+            setSortOrder('asc');
+        }
+    }
+
     return (
-        <View style={dashboardStyles.container}>
-            <Text style={dashboardStyles.title}>Dashboard</Text>
-            <View style={dashboardStyles.section}>
-                <TableComponent soilsData={soils} onRowPress={handleRowPress} />
+        <ScrollView>
+            <View style={dashboardStyles.container}>
+                <Text style={dashboardStyles.title}>Dashboard</Text>
+                <View style={dashboardStyles.section}>
+                    <View style={dashboardStyles.sortButtonContainer}>
+                        <TouchableOpacity 
+                            style={dashboardStyles.sortButton} 
+                            onPress={sortBtID}
+                        >
+                            <Text style={dashboardStyles.sortButtonText}>Sort by ID</Text>
+                            {
+                                sortBy === 'id' ? (
+                                    sortOrder === 'asc' ? <ChevronUpIcon color={colors.light} /> : <ChevronDownIcon color={colors.light} />
+                                ) : (
+                                    <></>
+                                )
+                            }
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={dashboardStyles.sortButton} 
+                            onPress={sortByName}
+                        >
+                            <Text style={dashboardStyles.sortButtonText}>Sort by Name</Text>
+                            {
+                                sortBy === 'name' ? (
+                                    sortOrder === 'asc' ? <ChevronUpIcon color={colors.light} /> : <ChevronDownIcon color={colors.light} />
+                                ) : (
+                                    <></>
+                                )
+                            }
+                        </TouchableOpacity>
+                    </View>
+                    <TableComponent soilsData={soils} onRowPress={handleRowPress} />
+                </View>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
 function TableComponent({soilsData, onRowPress}: {soilsData: SoilList[]; onRowPress?: (soil: SoilList) => void}) {
 
     const header = ['Soil ID', 'Soil Name', 'Latitude', 'Longitude']
-    const widthArr = [100, 180, 140, 140]
-    const tableWidth = widthArr.reduce((sum, w) => sum + w, 0)
     const screenWidth = Dimensions.get('window').width
-    const horizContentWidth = Math.max(tableWidth, screenWidth + 1)
+    const widthArr = [screenWidth * 0.2, screenWidth * 0.35, screenWidth * 0.225, screenWidth * 0.225]
+    const tableWidth = screenWidth
+    const horizContentWidth = screenWidth
 
     return (
         <ScrollView

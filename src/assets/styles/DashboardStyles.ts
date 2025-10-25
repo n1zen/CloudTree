@@ -207,4 +207,39 @@ export const dashboardStyles = StyleSheet.create({
     fullScreenModalSaveButton: {
         backgroundColor: colors.success,
     },
+    // Sort buttons styles
+    sortButtonContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 12,
+    },
+    sortButton: {
+        backgroundColor: colors.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 4,
+        minWidth: 100,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    sortButtonText: {
+        color: colors.light,
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    sortButtonActive: {
+        backgroundColor: colors.accent,
+    },
+    sortButtonActiveText: {
+        color: colors.light,
+        fontSize: 14,
+        fontWeight: '700',
+    },
 });
