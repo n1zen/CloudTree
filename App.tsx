@@ -5,8 +5,9 @@
  * @format
  */
 
-import { View, Text } from 'react-native';
+import { View, Text, Dimensions } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
 
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -33,16 +34,37 @@ function App() {
 }
 
 function AppContent() {
+  const [orientation, setOrientation] = useState<string>('portrait');
+
+  // Orientation change listener
+  useEffect(() => {
+    const updateOrientation = () => {
+      const { width, height } = Dimensions.get('window');
+      const newOrientation = width > height ? 'landscape' : 'portrait';
+      setOrientation(newOrientation);
+    };
+
+    // Set initial orientation
+    updateOrientation();
+
+    // Add orientation change listener
+    const subscription = Dimensions.addEventListener('change', updateOrientation);
+
+    return () => subscription?.remove();
+  }, []);
+
+  const isLandscape = orientation === 'landscape';
 
   return (
     <View style={appStyles.container}>
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={{
-            tabBarStyle: appStyles.tabBarStyle,
+            tabBarStyle: isLandscape ? { display: 'none' } : appStyles.tabBarStyle,
             tabBarLabelStyle: appStyles.tabBarLabelStyle,
             tabBarActiveTintColor: tabBarColors.activeTintColor,
             tabBarInactiveTintColor: tabBarColors.inactiveTintColor,
+            headerShown: !isLandscape,
             headerStyle: {
               backgroundColor: colors.bgDark,
               borderBottomColor: colors.primary,
