@@ -12,6 +12,7 @@ import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axi
 import { useNavigation } from '@react-navigation/native';
 import StatusIndicator from '../components/StatusIndicator.tsx';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
+import { Scroll } from 'lucide-react-native';
 
 export default function SensorScreen() {
 
@@ -170,7 +171,7 @@ export default function SensorScreen() {
                     </View>
                     <View style={sensorScreenStyles.actionsContainer}>
                         <Button
-                            title="Connect to Broker"
+                            title="Connect to Sensor"
                             onPress={connectToBroker}
                             disabled={shouldConnect}
                             color={colors.primary}
@@ -531,28 +532,30 @@ function Update({soilData, setIsModalVisible}) {
                     {soilID} - {soilName}
                 </Text>
             </TouchableOpacity>
-            <Modal
-                visible={showPicker} transparent animationType="slide"
-            >
-                <View style={sensorScreenStyles.modalContainer}>
-                    <View style={sensorScreenStyles.modalContent}>
-                        <Text style={sensorScreenStyles.modalTitle}>Select Soil ID</Text>
-                        {soilIDList.map(([id, name]) => (
-                            <TouchableOpacity 
-                                key={id} 
-                                style={sensorScreenStyles.modalOption}
-                                onPress={() => {
-                                    setSoilID(id);
-                                    setSoilName(name);
-                                    setShowPicker(false);
-                                }}
-                            >
-                                <Text style={sensorScreenStyles.modalOptionText}>{id} - {name}</Text>
-                            </TouchableOpacity>
-                        ))}
+            <ScrollView>
+                <Modal
+                    visible={showPicker} transparent animationType="slide"
+                >
+                    <View style={sensorScreenStyles.modalContainer}>
+                        <View style={sensorScreenStyles.modalContent}>
+                            <Text style={sensorScreenStyles.modalTitle}>Select Soil ID</Text>
+                            {soilIDList.map(([id, name]) => (
+                                <TouchableOpacity 
+                                    key={id} 
+                                    style={sensorScreenStyles.modalOption}
+                                    onPress={() => {
+                                        setSoilID(id);
+                                        setSoilName(name);
+                                        setShowPicker(false);
+                                    }}
+                                >
+                                    <Text style={sensorScreenStyles.modalOptionText}>{id} - {name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
+            </ScrollView>
             <View style={sensorScreenStyles.cardsContainer}>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
