@@ -1,9 +1,41 @@
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    ActivityIndicator,
+    Alert,
+    Platform,
+} from 'react-native';
 import { infoStyles } from '../assets/styles/InfoScreen';
 import PlantingInstructionsTable from './PlantingInstructionsTable';
+import { saveManualToDevice } from '../lib/manualService';
 
 const InfoContent: React.FC = () => {
+    const [isSavingManual, setIsSavingManual] = React.useState(false);
+
+    const handleSaveManual = async () => {
+        if (isSavingManual) return;
+
+        setIsSavingManual(true);
+        try {
+            const savedPath = await saveManualToDevice();
+            Alert.alert(
+                'Manual ready',
+                Platform.OS === 'android'
+                    ? `Saved to Downloads:\n${savedPath}`
+                    : 'Choose a destination in the share sheet to export the PDF.'
+            );
+        } catch (error) {
+            Alert.alert(
+                'Unable to save manual',
+                error instanceof Error ? error.message : 'Please try again later.'
+            );
+        } finally {
+            setIsSavingManual(false);
+        }
+    };
 
     const soilProperties = [
         {
@@ -118,6 +150,27 @@ const InfoContent: React.FC = () => {
                         </Text>
                     </View>
                 ))}
+            </View>
+
+            <View style={infoStyles.manualSection}>
+                <Text style={infoStyles.manualTitle}>Offline User Manual</Text>
+                <Text style={infoStyles.manualDescription}>
+                    Access the complete CloudTree user manual even without internet. The PDF is bundled within the app and opens with your device&apos;s default viewer.
+                </Text>
+                <TouchableOpacity
+                    style={[
+                        infoStyles.manualButton,
+                        isSavingManual && infoStyles.manualButtonDisabled,
+                    ]}
+                    onPress={handleSaveManual}
+                    disabled={isSavingManual}
+                >
+                    {isSavingManual ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={infoStyles.manualButtonText}>Save PDF to Device</Text>
+                    )}
+                </TouchableOpacity>
             </View>
         </ScrollView>
     );

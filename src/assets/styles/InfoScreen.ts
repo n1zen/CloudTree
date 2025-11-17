@@ -200,4 +200,37 @@ export const infoStyles = StyleSheet.create({
         fontWeight: '600',
         color: colors.primary,
     },
+    manualSection: {
+        backgroundColor: colors.light,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: colors.accent,
+        gap: 12,
+    },
+    manualTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: colors.dark,
+    },
+    manualDescription: {
+        fontSize: 14,
+        color: colors.dark,
+        lineHeight: 20,
+    },
+    manualButton: {
+        backgroundColor: colors.primary,
+        paddingVertical: 14,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    manualButtonDisabled: {
+        opacity: 0.7,
+    },
+    manualButtonText: {
+        color: colors.light,
+        fontSize: 16,
+        fontWeight: '600',
+    },
 });
