@@ -12,7 +12,6 @@ import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axi
 import { useNavigation } from '@react-navigation/native';
 import StatusIndicator from '../components/StatusIndicator.tsx';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
-import { Scroll } from 'lucide-react-native';
 
 export default function SensorScreen() {
 
@@ -505,6 +504,10 @@ function Update({soilData, setIsModalVisible}) {
         setIsFullScreenModalVisible(false);
     }
 
+    const handlePickerClose = () => {
+        setShowPicker(false);
+    }
+
     useEffect(() => {
         const getSoilIDList = async () => {
             const soilList = await getSoil();
@@ -532,13 +535,14 @@ function Update({soilData, setIsModalVisible}) {
                     {soilID} - {soilName}
                 </Text>
             </TouchableOpacity>
-            <ScrollView>
-                <Modal
-                    visible={showPicker} transparent animationType="slide"
-                >
-                    <View style={sensorScreenStyles.modalContainer}>
-                        <View style={sensorScreenStyles.modalContent}>
-                            <Text style={sensorScreenStyles.modalTitle}>Select Soil ID</Text>
+            <Modal
+                visible={showPicker} transparent animationType="slide"
+                onRequestClose={handlePickerClose}
+            >
+                <View style={sensorScreenStyles.modalContainer}>
+                    <View style={sensorScreenStyles.modalContent}>
+                        <Text style={sensorScreenStyles.modalTitle}>Select Soil ID</Text>
+                        <ScrollView style={sensorScreenStyles.pickerScrollView}>
                             {soilIDList.map(([id, name]) => (
                                 <TouchableOpacity 
                                     key={id} 
@@ -552,10 +556,10 @@ function Update({soilData, setIsModalVisible}) {
                                     <Text style={sensorScreenStyles.modalOptionText}>{id} - {name}</Text>
                                 </TouchableOpacity>
                             ))}
-                        </View>
+                        </ScrollView>
                     </View>
-                </Modal>
-            </ScrollView>
+                </View>
+            </Modal>
             <View style={sensorScreenStyles.cardsContainer}>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
