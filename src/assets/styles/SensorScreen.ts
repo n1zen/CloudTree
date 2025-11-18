@@ -82,6 +82,7 @@ export const sensorScreenStyles = StyleSheet.create({
     modalContent: {
         width: '90%',
         maxWidth: 600,
+        maxHeight: '80%',
         backgroundColor: colors.bgLight2,
         borderRadius: 15,
         padding: 20,
@@ -93,6 +94,9 @@ export const sensorScreenStyles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 5,
+    },
+    pickerScrollView: {
+        maxHeight: 400,
     },
     textarea: {
         marginVertical: 12,
