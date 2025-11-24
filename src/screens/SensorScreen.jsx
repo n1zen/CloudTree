@@ -8,6 +8,8 @@ import { getDefaultIp, getWebSocketPort } from '../lib/config.ts';
 import UpdateSaveRadio from '../components/UpdateSaveRadio.tsx';
 import StatusIndicator from '../components/StatusIndicator.tsx';
 import ParameterAdvice from '../components/ParameterAdvice.tsx';
+import SoilTypePredictor from '../components/SoilTypePredictor.tsx';
+import NarraSoilSuitability from '../components/NarraSoilSuitability.tsx';
 import SaveModal from '../components/SaveModal.tsx';
 import UpdateModal from '../components/UpdateModal.tsx';
 import { generateAutoComment } from '../lib/commentGenerator.ts';
@@ -137,6 +139,8 @@ export default function SensorScreen() {
                         </Text>
                     </View>
                     <View style={sensorScreenStyles.cardsContainer}>
+                        <NarraSoilSuitability soilData={soilData} />
+                        <SoilTypePredictor soilData={soilData} />
                         <View style={sensorScreenStyles.fullCard}>
                             <Text style={sensorScreenStyles.cardHeader}>Soil Moisture</Text>
                             <View style={sensorScreenStyles.cardRow}>
@@ -156,7 +160,7 @@ export default function SensorScreen() {
                         <View style={sensorScreenStyles.fullCard}>
                             <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
                             <View style={sensorScreenStyles.cardRow}>
-                                <Text>{soilData.electricalConductivity} us/cm</Text>
+                                <Text>{Number.isFinite(soilData.electricalConductivity) ? soilData.electricalConductivity.toFixed(0) : 0} µS/cm</Text>
                                 <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
                             </View>
                             <ParameterAdvice field="Ec" parameterInsights={parameterInsights} />

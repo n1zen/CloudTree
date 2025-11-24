@@ -320,4 +320,103 @@ export const sensorScreenStyles = StyleSheet.create({
     adviceStatusCritical: {
         color: colors.danger,
     },
+    // Narra Suitability Card Styles (matches fullCard style)
+    narraSuitabilityCard: {
+        width: '100%',
+        backgroundColor: colors.bgLight,
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 12,
+        borderWidth: 2,
+        borderColor: colors.secondary,
+        shadowColor: colors.dark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    narraSuitabilityHeader: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: colors.dark,
+        marginBottom: 6,
+    },
+    narraSuitabilityContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginVertical: 4,
+    },
+    narraSuitabilityLabel: {
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    narraSuitabilityPercentage: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.dark,
+    },
+    narraSuitabilityDescription: {
+        fontSize: 12,
+        color: colors.dark,
+        marginTop: 6,
+        paddingTop: 6,
+        borderTopWidth: 1,
+        borderTopColor: colors.accent,
+    },
+    suitabilityIdeal: {
+        color: colors.success,
+    },
+    suitabilityGood: {
+        color: colors.success,
+    },
+    suitabilityModerate: {
+        color: colors.warning,
+    },
+    suitabilityPoor: {
+        color: '#FF9800',
+    },
+    suitabilityUnsuitable: {
+        color: colors.danger,
+    },
+    // Prediction Card Styles (matches fullCard style)
+    predictionCard: {
+        width: '100%',
+        backgroundColor: colors.bgLight,
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 12,
+        borderWidth: 2,
+        borderColor: colors.secondary,
+        shadowColor: colors.dark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    predictionCardHeader: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: colors.dark,
+        marginBottom: 6,
+    },
+    predictionValue: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: colors.primary,
+        marginBottom: 4,
+    },
+    soilTypeMatchesContainer: {
+        marginTop: 6,
+        paddingTop: 6,
+        borderTopWidth: 1,
+        borderTopColor: colors.accent,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    soilTypeMatchText: {
+        fontSize: 12,
+        color: colors.dark,
+    },
 });
