@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getDefaultIp, getHttpPort } from './config.ts';
-import { CreateSoilRequest, SoilList, ParameterList, UpdateParameterRequest } from './types.ts';
+import { CreateSoilRequest, SoilList, ParameterList, UpdateParameterRequest, XAISuitabilityRequest, XAISuitabilityResponse } from './types.ts';
 
 // const defaultIp = 'cloudtree.local';
 // const httpPort = '8000';
@@ -121,5 +121,23 @@ export async function deleteSoil(soilID: string): Promise<void> {
     } catch (error) {
         console.error('Failed to delete soil data: ' + error);
         throw new Error('Failed to delete soil data: ' + error);
+    }
+}
+
+// XAI PREDICTION FUNCTIONS
+// Predict Narra Tree Soil Suitability using XAI Model
+export async function predictNarraSuitability(soilData: XAISuitabilityRequest): Promise<XAISuitabilityResponse> {
+    try {
+        const response = await api.post('/predict/suitability', soilData);
+        if(response.status === 200) {
+            return response.data;
+        } else {
+            console.error('Failed to predict suitability: ' + response.status);
+            console.log(response.data);
+            throw new Error('Failed to predict suitability: ' + response.status);
+        }
+    } catch (error) {
+        console.error('Failed to predict suitability: ' + error);
+        throw new Error('Failed to predict suitability: ' + error);
     }
 }

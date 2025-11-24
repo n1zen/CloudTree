@@ -47,3 +47,22 @@ export type CreateSoilRequest = {
     Soil: SoilRequest,
     Parameters: ParameterRequest
 }
+
+// XAI PREDICTION TYPES
+export type XAISuitabilityRequest = {
+    moisture: number;
+    temperature: number;
+    ec: number;
+    ph: number;
+    nitrogen: number;
+    phosphorus: number;
+    potassium: number;
+}
+
+export type XAISuitabilityResponse = {
+    suitable: boolean;
+    confidence: number;
+    ideal_score: number;
+    explanation: string;
+    recommendations: string[];
+}

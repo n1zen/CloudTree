@@ -223,11 +223,20 @@ function generateSummary(status: string, analyses: ParameterAnalysis[]): string 
     }
 }
 
+export interface XAISuitabilityData {
+    suitable: boolean;
+    confidence: number;
+    ideal_score: number;
+    explanation: string;
+    recommendations: string[];
+}
+
 export function formatCommentData(
     commentData: CommentData, 
     prefix: 'save' | 'update' = 'save',
     soilSuitability?: { label: string; percentage: number; description: string },
-    soilType?: { type: string; matchPercentages: Array<{ type: string; percentage: number }> }
+    soilType?: { type: string; matchPercentages: Array<{ type: string; percentage: number }> },
+    xaiPrediction?: XAISuitabilityData
 ): string {
     const header = prefix === 'save' 
         ? '🌱 AUTO-GENERATED RECOMMENDATIONS\n' 
@@ -237,13 +246,34 @@ export function formatCommentData(
     comment += `\n📊 Overall Status: ${commentData.overallStatus.toUpperCase()}\n`;
     comment += `📝 Summary: ${commentData.summary}\n\n`;
     
-    // Add Narra Tree Suitability
-    if (soilSuitability) {
+    // Add XAI Narra Tree Suitability Prediction (prioritized if available)
+    if (xaiPrediction) {
+        const confidencePercent = Math.round(xaiPrediction.confidence);
+        const idealScorePercent = Math.round(xaiPrediction.ideal_score);
+        const suitabilityEmoji = xaiPrediction.suitable && confidencePercent >= 85 ? '🌟' :
+                                xaiPrediction.suitable && confidencePercent >= 70 ? '✅' :
+                                xaiPrediction.suitable ? '⚠️' :
+                                confidencePercent >= 70 ? '⚡' : '🚨';
+        
+        comment += `🤖 AI Narra Tree Suitability Analysis:\n`;
+        comment += `${suitabilityEmoji} ${xaiPrediction.suitable ? 'Suitable' : 'Not Suitable'} (${confidencePercent}% confidence)\n`;
+        comment += `   Quality Score: ${idealScorePercent}%\n`;
+        comment += `   ${xaiPrediction.explanation}\n`;
+        
+        if (xaiPrediction.recommendations && xaiPrediction.recommendations.length > 0) {
+            comment += `   AI Recommendations:\n`;
+            xaiPrediction.recommendations.forEach(rec => {
+                comment += `   • ${rec}\n`;
+            });
+        }
+        comment += `\n`;
+    } else if (soilSuitability) {
+        // Fallback to local calculation if XAI not available
         const suitabilityEmoji = soilSuitability.percentage >= 85 ? '🌟' :
                                 soilSuitability.percentage >= 70 ? '✅' :
                                 soilSuitability.percentage >= 50 ? '⚠️' :
                                 soilSuitability.percentage >= 30 ? '⚡' : '🚨';
-        comment += `🌳 Narra Tree Suitability:\n`;
+        comment += `🌳 Narra Tree Suitability (Local):\n`;
         comment += `${suitabilityEmoji} ${soilSuitability.label} (${soilSuitability.percentage}%)\n`;
         comment += `   ${soilSuitability.description}\n\n`;
     }

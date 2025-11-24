@@ -1,6 +1,9 @@
-import React, { useMemo } from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
+import { predictNarraSuitability } from '../lib/axios.ts';
+import { XAISuitabilityResponse } from '../lib/types.ts';
+import { colors } from '../assets/styles/Colors.ts';
 
 type SoilData = {
     moisture: number;
@@ -103,25 +106,189 @@ function getSuitabilityLevel(percentage: number): {
 }
 
 export default function NarraSoilSuitability({ soilData }: { soilData: SoilData }) {
-    const percentage = useMemo(() => calculateNarraMatchPercentage(soilData), [soilData]);
-    const suitability = useMemo(() => getSuitabilityLevel(percentage), [percentage]);
+    const [prediction, setPrediction] = useState<XAISuitabilityResponse | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchPrediction = async () => {
+            // Don't show loading state, just fetch in background
+            setError(null);
+            
+            try {
+                const response = await predictNarraSuitability({
+                    moisture: soilData.moisture,
+                    temperature: soilData.temperature,
+                    ec: soilData.electricalConductivity,
+                    ph: soilData.phLevel,
+                    nitrogen: soilData.nitrogen,
+                    phosphorus: soilData.phosphorus,
+                    potassium: soilData.potassium,
+                });
+                
+                if (isMounted) {
+                    setPrediction(response);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    console.error('Error fetching XAI prediction:', err);
+                    setError('Failed to get prediction');
+                }
+            }
+        };
+
+        fetchPrediction();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [soilData.moisture, soilData.temperature, soilData.electricalConductivity, 
+        soilData.phLevel, soilData.nitrogen, soilData.phosphorus, soilData.potassium]);
+
+    // Fallback to local calculation if no prediction yet or API fails
+    const percentage = calculateNarraMatchPercentage(soilData);
+    const fallbackSuitability = getSuitabilityLevel(percentage);
+
+    // Use XAI prediction if available, otherwise fallback to local calculation
+    const suitabilityLabel = prediction 
+        ? (prediction.suitable ? 'Suitable' : 'Not Suitable')
+        : fallbackSuitability.label;
+    
+    const confidencePercentage = prediction 
+        ? Math.round(prediction.confidence) 
+        : percentage;
+    
+    const idealScore = prediction 
+        ? Math.round(prediction.ideal_score)
+        : percentage;
+    
+    const description = prediction 
+        ? prediction.explanation 
+        : fallbackSuitability.description;
+
+    // Determine style based on suitability
+    const getSuitabilityStyle = () => {
+        if (prediction) {
+            if (prediction.suitable && prediction.confidence >= 85) return sensorScreenStyles.suitabilityIdeal;
+            if (prediction.suitable && prediction.confidence >= 70) return sensorScreenStyles.suitabilityGood;
+            if (prediction.suitable) return sensorScreenStyles.suitabilityModerate;
+            if (prediction.confidence >= 70) return sensorScreenStyles.suitabilityPoor;
+            return sensorScreenStyles.suitabilityUnsuitable;
+        }
+        return fallbackSuitability.statusStyle;
+    };
+
+    // Get color for percentage based on value
+    const getPercentageColor = (value: number) => {
+        if (value >= 85) return colors.success;
+        if (value >= 70) return '#4CAF50';
+        if (value >= 50) return colors.warning;
+        if (value >= 30) return '#FF9800';
+        return colors.danger;
+    };
+
+    // Get word indicator for quality score
+    const getQualityIndicator = (value: number) => {
+        if (value >= 85) return 'Excellent';
+        if (value >= 70) return 'Good';
+        if (value >= 50) return 'Moderate';
+        if (value >= 30) return 'Poor';
+        return 'Very Poor';
+    };
+
+    // Get word indicator for confidence level
+    const getConfidenceIndicator = (value: number) => {
+        if (value >= 90) return 'Very High';
+        if (value >= 75) return 'High';
+        if (value >= 60) return 'Moderate';
+        if (value >= 40) return 'Low';
+        return 'Very Low';
+    };
 
     return (
-        <View style={sensorScreenStyles.narraSuitabilityCard}>
-            <Text style={sensorScreenStyles.narraSuitabilityHeader}>Narra Tree Soil Suitability</Text>
+        <View style={sensorScreenStyles.fullCard}>
+            <Text style={sensorScreenStyles.cardHeader}>
+                Narra Tree Soil Suitability {prediction ? '(AI)' : '(Local)'}
+            </Text>
             
-            <View style={sensorScreenStyles.narraSuitabilityContent}>
-                <Text style={[sensorScreenStyles.narraSuitabilityLabel, suitability.statusStyle]}>
-                    {suitability.label}
+            {error && (
+                <Text style={{ color: colors.danger, fontSize: 12, marginBottom: 4 }}>
+                    {error}
                 </Text>
-                <Text style={sensorScreenStyles.narraSuitabilityPercentage}>
-                    {percentage}%
+            )}
+            
+            <Text style={[sensorScreenStyles.narraSuitabilityLabel, getSuitabilityStyle()]}>
+                {suitabilityLabel}
+            </Text>
+
+            {prediction && (
+                <View style={{ marginTop: 8 }}>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
+                        <Text style={{ fontSize: 12, color: colors.dark, fontWeight: '500' }}>
+                            Confidence:{' '}
+                            <Text style={{ color: getPercentageColor(confidencePercentage), fontWeight: '700' }}>
+                                {confidencePercentage}% ({getConfidenceIndicator(confidencePercentage)})
+                            </Text>
+                        </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                        <Text style={{ fontSize: 12, color: colors.dark, fontWeight: '500' }}>
+                            Quality Score:{' '}
+                            <Text style={{ color: getPercentageColor(idealScore), fontWeight: '700' }}>
+                                {idealScore}% ({getQualityIndicator(idealScore)})
+                            </Text>
+                        </Text>
+                    </View>
+                </View>
+            )}
+            
+            {/* Separator before explanation */}
+            <View style={{ 
+                height: 1, 
+                backgroundColor: colors.secondary, 
+                marginVertical: 10,
+                width: '100%' 
+            }} />
+            
+            {/* Explanation Section */}
+            <View style={{ 
+                backgroundColor: colors.bgLight2, 
+                padding: 10, 
+                borderRadius: 8,
+                borderLeftWidth: 3,
+                borderLeftColor: colors.primary 
+            }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.dark, marginBottom: 4 }}>
+                    Explanation:
+                </Text>
+                <Text style={[sensorScreenStyles.narraSuitabilityDescription, { marginTop: 0 }]}>
+                    {description}
                 </Text>
             </View>
-            
-            <Text style={sensorScreenStyles.narraSuitabilityDescription}>
-                {suitability.description}
-            </Text>
+
+            {/* Separator before recommendations */}
+            {prediction && prediction.recommendations && prediction.recommendations.length > 0 && (
+                <>
+                    <View style={{ 
+                        height: 1, 
+                        backgroundColor: colors.secondary, 
+                        marginVertical: 10,
+                        width: '100%' 
+                    }} />
+                    
+                    <View>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.dark, marginBottom: 6 }}>
+                            AI Recommendations:
+                        </Text>
+                        {prediction.recommendations.map((rec, idx) => (
+                            <Text key={idx} style={{ fontSize: 12, color: colors.dark, marginTop: 3, lineHeight: 18 }}>
+                                • {rec}
+                            </Text>
+                        ))}
+                    </View>
+                </>
+            )}
         </View>
     );
 }

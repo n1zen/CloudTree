@@ -14,7 +14,7 @@ import NarraSoilSuitability from '../components/NarraSoilSuitability.tsx';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
 import { buildGeneratorPayload, calculateNarraSuitability, predictSoilType } from '../lib/soilParameterUtils.ts';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
-import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
+import { saveSoilData, getSoil, saveParameterData, idToNumber, predictNarraSuitability } from '../lib/axios.ts';
 
 export default function SensorScreen() {
     const navigation = useNavigation();
@@ -169,22 +169,43 @@ export default function SensorScreen() {
     useEffect(() => {
         if (!isModalVisible) return;
         
-        try {
-            const commentData = generateAutoComment(buildGeneratorPayload(soilData));
-            const soilSuitability = calculateNarraSuitability(soilData);
-            const soilTypeData = predictSoilType(soilData);
-            
-            const formattedComment = formatCommentData(
-                commentData, 
-                selectAction === 'Save' ? 'save' : 'update',
-                soilSuitability,
-                soilTypeData
-            );
-            setComments(formattedComment);
-        } catch (error) {
-            console.error('Error generating comments:', error);
-            setComments('Comments');
-        }
+        const generateCommentsWithXAI = async () => {
+            try {
+                const commentData = generateAutoComment(buildGeneratorPayload(soilData));
+                const soilSuitability = calculateNarraSuitability(soilData);
+                const soilTypeData = predictSoilType(soilData);
+                
+                // Try to get XAI prediction
+                let xaiPrediction = null;
+                try {
+                    xaiPrediction = await predictNarraSuitability({
+                        moisture: soilData.moisture,
+                        temperature: soilData.temperature,
+                        ec: soilData.electricalConductivity,
+                        ph: soilData.phLevel,
+                        nitrogen: soilData.nitrogen,
+                        phosphorus: soilData.phosphorus,
+                        potassium: soilData.potassium,
+                    });
+                } catch (xaiError) {
+                    console.log('XAI prediction not available, using local calculation');
+                }
+                
+                const formattedComment = formatCommentData(
+                    commentData, 
+                    selectAction === 'Save' ? 'save' : 'update',
+                    soilSuitability,
+                    soilTypeData,
+                    xaiPrediction
+                );
+                setComments(formattedComment);
+            } catch (error) {
+                console.error('Error generating comments:', error);
+                setComments('Comments');
+            }
+        };
+        
+        generateCommentsWithXAI();
     }, [isModalVisible, selectAction]);
 
     const connectToBroker = () => {
@@ -198,17 +219,34 @@ export default function SensorScreen() {
         console.log('Modal visibility set to true');
     };
 
-    const generateComment = () => {
+    const generateComment = async () => {
         try {
             const commentData = generateAutoComment(buildGeneratorPayload(soilData));
             const soilSuitability = calculateNarraSuitability(soilData);
             const soilTypeData = predictSoilType(soilData);
             
+            // Try to get XAI prediction
+            let xaiPrediction = null;
+            try {
+                xaiPrediction = await predictNarraSuitability({
+                    moisture: soilData.moisture,
+                    temperature: soilData.temperature,
+                    ec: soilData.electricalConductivity,
+                    ph: soilData.phLevel,
+                    nitrogen: soilData.nitrogen,
+                    phosphorus: soilData.phosphorus,
+                    potassium: soilData.potassium,
+                });
+            } catch (xaiError) {
+                console.log('XAI prediction not available, using local calculation');
+            }
+            
             const formattedComment = formatCommentData(
                 commentData,
                 selectAction === 'Save' ? 'save' : 'update',
                 soilSuitability,
-                soilTypeData
+                soilTypeData,
+                xaiPrediction
             );
             setComments(formattedComment);
         } catch (error) {
