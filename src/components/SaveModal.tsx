@@ -10,7 +10,7 @@ import { requestLocationPermission, getCurrentLocation } from '../lib/locService
 import { saveSoilData } from '../lib/axios.ts';
 import { useNavigation } from '@react-navigation/native';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
-import { buildGeneratorPayload } from '../lib/soilParameterUtils.ts';
+import { buildGeneratorPayload, calculateNarraSuitability, predictSoilType } from '../lib/soilParameterUtils.ts';
 
 interface SaveModalProps {
     soilData: {
@@ -61,10 +61,37 @@ export default function SaveModal({ soilData, setIsModalVisible, parameterInsigh
         getLocation();
     }, []);
 
+    // Auto-generate comments on mount
+    useEffect(() => {
+        try {
+            const commentData = generateAutoComment(buildGeneratorPayload(soilData));
+            const soilSuitability = calculateNarraSuitability(soilData);
+            const soilTypeData = predictSoilType(soilData);
+            
+            const formattedComment = formatCommentData(
+                commentData, 
+                'save',
+                soilSuitability,
+                soilTypeData
+            );
+            setComments(formattedComment);
+        } catch (error) {
+            console.error('Error generating comments:', error);
+            setComments('Comments');
+        }
+    }, []);
+
     const generateComment = () => {
         const commentData = generateAutoComment(buildGeneratorPayload(soilData));
+        const soilSuitability = calculateNarraSuitability(soilData);
+        const soilTypeData = predictSoilType(soilData);
         
-        const formattedComment = formatCommentData(commentData);
+        const formattedComment = formatCommentData(
+            commentData,
+            'save',
+            soilSuitability,
+            soilTypeData
+        );
         setComments(formattedComment);
     };
 

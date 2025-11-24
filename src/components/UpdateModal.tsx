@@ -9,7 +9,7 @@ import ParameterAdvice from './ParameterAdvice.tsx';
 import { getSoil, saveParameterData } from '../lib/axios.ts';
 import { useNavigation } from '@react-navigation/native';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
-import { buildGeneratorPayload } from '../lib/soilParameterUtils.ts';
+import { buildGeneratorPayload, calculateNarraSuitability, predictSoilType } from '../lib/soilParameterUtils.ts';
 
 interface UpdateModalProps {
     soilData: {
@@ -61,8 +61,15 @@ export default function UpdateModal({ soilData, setIsModalVisible, parameterInsi
 
     const generateComment = () => {
         const commentData = generateAutoComment(buildGeneratorPayload(soilData));
+        const soilSuitability = calculateNarraSuitability(soilData);
+        const soilTypeData = predictSoilType(soilData);
 
-        const formattedComment = formatCommentData(commentData);
+        const formattedComment = formatCommentData(
+            commentData,
+            'update',
+            soilSuitability,
+            soilTypeData
+        );
         setComments(formattedComment);
     }
 
@@ -91,7 +98,27 @@ export default function UpdateModal({ soilData, setIsModalVisible, parameterInsi
             setSoilIDList(soilList.map(soil => [soil.Soil_ID, soil.Soil_Name]));
         }
         getSoilIDList();
-    },[])
+    },[]);
+
+    // Auto-generate comments on mount
+    useEffect(() => {
+        try {
+            const commentData = generateAutoComment(buildGeneratorPayload(soilData));
+            const soilSuitability = calculateNarraSuitability(soilData);
+            const soilTypeData = predictSoilType(soilData);
+            
+            const formattedComment = formatCommentData(
+                commentData, 
+                'update',
+                soilSuitability,
+                soilTypeData
+            );
+            setComments(formattedComment);
+        } catch (error) {
+            console.error('Error generating comments:', error);
+            setComments('Comments');
+        }
+    }, []);
 
     return(
         <View>

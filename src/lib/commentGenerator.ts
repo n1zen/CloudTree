@@ -223,10 +223,40 @@ function generateSummary(status: string, analyses: ParameterAnalysis[]): string 
     }
 }
 
-export function formatCommentData(commentData: CommentData): string {
-    let comment = `🌱 AUTO-GENERATED SOIL ANALYSIS\n`;
-    comment += `📊 Overall Status: ${commentData.overallStatus.toUpperCase()}\n\n`;
+export function formatCommentData(
+    commentData: CommentData, 
+    prefix: 'save' | 'update' = 'save',
+    soilSuitability?: { label: string; percentage: number; description: string },
+    soilType?: { type: string; matchPercentages: Array<{ type: string; percentage: number }> }
+): string {
+    const header = prefix === 'save' 
+        ? '🌱 AUTO-GENERATED RECOMMENDATIONS\n' 
+        : '🔄 UPDATED RECOMMENDATIONS\n';
+    
+    let comment = header;
+    comment += `\n📊 Overall Status: ${commentData.overallStatus.toUpperCase()}\n`;
     comment += `📝 Summary: ${commentData.summary}\n\n`;
+    
+    // Add Narra Tree Suitability
+    if (soilSuitability) {
+        const suitabilityEmoji = soilSuitability.percentage >= 85 ? '🌟' :
+                                soilSuitability.percentage >= 70 ? '✅' :
+                                soilSuitability.percentage >= 50 ? '⚠️' :
+                                soilSuitability.percentage >= 30 ? '⚡' : '🚨';
+        comment += `🌳 Narra Tree Suitability:\n`;
+        comment += `${suitabilityEmoji} ${soilSuitability.label} (${soilSuitability.percentage}%)\n`;
+        comment += `   ${soilSuitability.description}\n\n`;
+    }
+    
+    // Add Soil Type Prediction
+    if (soilType) {
+        comment += `🔬 Soil Type: ${soilType.type}\n`;
+        comment += `   Match Analysis:\n`;
+        soilType.matchPercentages.forEach(match => {
+            comment += `   • ${match.type}: ${match.percentage}%\n`;
+        });
+        comment += `\n`;
+    }
     
     comment += `📈 Parameter Analysis:\n`;
     commentData.analyses.forEach(analysis => {
