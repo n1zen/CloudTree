@@ -9,73 +9,73 @@ export default function StatusIndicator({ field, value }: { field: string, value
 
     useEffect(() => {
         if (field === 'Hum' && value < 20) {
-            setStatus('Dry');
+            setStatus('Dry Soil');
             setColor(colors.danger);
         } else if (field === 'Hum' && value > 20 && value < 60) {
-            setStatus('Optimal');
+            setStatus('Okay Soil Moisture');
             setColor(colors.success);
         } else if (field === 'Hum' && value > 60) {
-            setStatus('Waterlogged');
+            setStatus('Soaking Soil');
             setColor(colors.danger);
         }
         if (field === 'Temp' && value < 18) {
-            setStatus('Cold');
+            setStatus('Cold Soil Temp');
             setColor(colors.danger);
         } else if (field === 'Temp' && value > 18 && value < 35) {
-            setStatus('Optimal');
+            setStatus('Okay Soil Temp');
             setColor(colors.success);
         } else if (field === 'Temp' && value > 35) {
-            setStatus('Hot');
+            setStatus('Hot Soil Temp');
             setColor(colors.danger);
         }
         if (field === 'Ec' && value < 100) {
-            setStatus('Low ');
+            setStatus('Low EC Value');
             setColor(colors.danger);
         } else if (field === 'Ec' && value > 100 && value < 4000) {
-            setStatus('Optimal');
+            setStatus('Okay EC Value');
             setColor(colors.success);
         } else if (field === 'Ec' && value > 4000) {
-            setStatus('High');
+            setStatus('High EC Value');
             setColor(colors.danger);
         }
         if (field === 'Ph' && value < 5.5) {
-            setStatus('Acidic');
+            setStatus('Acidic pH Value');
             setColor(colors.danger);
         } else if (field === 'Ph' && value > 5.5 && value < 7.5) {
-            setStatus('Optimal');
+            setStatus('Okay pH Value');
             setColor(colors.success);
         } else if (field === 'Ph' && value > 7.5) {
-            setStatus('Alkaline');
+            setStatus('Alkaline pH Value');
             setColor(colors.danger);
         }
         if (field === 'Nitrogen' && value < 40) {
-            setStatus('Low');
+            setStatus('Low N Value');
             setColor(colors.danger);
         } else if (field === 'Nitrogen' && value > 40 && value < 100) {
-            setStatus('Optimal');
+            setStatus('Okay N Value');
             setColor(colors.success);
         } else if (field === 'Nitrogen' && value > 100) {
-            setStatus('High');
+            setStatus('High N Value');
             setColor(colors.danger);
         }
         if (field === 'Phosphorus' && value < 12) {
-            setStatus('Low');
+            setStatus('Low P Value');
             setColor(colors.danger);
         } else if (field === 'Phosphorus' && value > 12 && value < 25) {
-            setStatus('Optimal');
+            setStatus('Okay P Value');
             setColor(colors.success);
         } else if (field === 'Phosphorus' && value > 30) {
-            setStatus('High');
+            setStatus('High P Value');
             setColor(colors.danger);
         }
         if (field === 'Potassium' && value < 120) {
-            setStatus('Low');
+            setStatus('Low K Value');
             setColor(colors.danger);
         } else if (field === 'Potassium' && value > 120 && value < 250) {
-            setStatus('Optimal');
+            setStatus('Okay K Value');
             setColor(colors.success);
         } else if (field === 'Potassium' && value > 250) {
-            setStatus('High');
+            setStatus('High K Value');
             setColor(colors.danger);
         }
     }, [field, value])
