@@ -1,4 +1,4 @@
-import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal, Linking } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
@@ -111,6 +111,14 @@ export default function SoilDetailsScreen() {
         });
     }
 
+    const handleOpenInMaps = () => {
+        const url = `https://www.google.com/maps/search/?api=1&query=${soil.Loc_Latitude},${soil.Loc_Longitude}`;
+        Linking.openURL(url).catch(err => {
+            console.error('Failed to open maps:', err);
+            Alert.alert('Error', 'Could not open Google Maps');
+        });
+    }
+
     const handleRowPress = (parameter: ParameterList) => {
         setLatestParameter(parameter);
     }
@@ -202,6 +210,9 @@ export default function SoilDetailsScreen() {
                              <Text style={dashboardStyles.fieldValue}>{soil.Loc_Longitude}</Text>
                          </View>
                          <View style={dashboardStyles.actionBar}>
+                             <Button title="Open in Google Maps" onPress={handleOpenInMaps} color={colors.info} />
+                         </View>
+                         <View style={dashboardStyles.actionBar}>
                              <Button title="Delete All" onPress={() => handleDeleteAll(soil.Soil_ID)} color={colors.danger} />
                          </View>
                      </View>
@@ -261,7 +272,7 @@ export default function SoilDetailsScreen() {
                                 <Text style={dashboardStyles.fieldLabel}>Date Recorded</Text>
                                 <Text style={dashboardStyles.fieldValue}>{latestParameter.Date_Recorded}</Text>
                             </View>
-                            <View style={{marginTop: 8}}>
+                            <View style={{marginTop: 8, marginBottom: 8}}>
                                 <Text style={dashboardStyles.fieldLabel}>Comments</Text>
                                 <TextInput 
                                     style={dashboardStyles.textareaReadOnly} 
@@ -270,13 +281,13 @@ export default function SoilDetailsScreen() {
                                     numberOfLines={5}
                                     editable={false}
                                 />
-                                <View style={{marginTop: 8}}>
-                                    <Button
-                                        title="Edit Comments (Full Screen)"
-                                        onPress={handleOpenFullScreenComments}
-                                        color={colors.secondary}
-                                    />
-                                </View>
+                            </View>
+                            <View style={dashboardStyles.actionBar}>
+                                <Button
+                                    title="Edit Comments (Full Screen)"
+                                    onPress={handleOpenFullScreenComments}
+                                    color={colors.secondary}
+                                />
                             </View>
                             <View style={dashboardStyles.actionBar}>
                                 <Button title="Delete Reading" onPress={() => handleDelete(latestParameter.Parameter_ID)} color={colors.danger} />
