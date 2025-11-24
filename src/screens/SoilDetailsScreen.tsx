@@ -2,7 +2,8 @@ import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, Te
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
-import { getParameters, deleteParameter, deleteSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
+import { idToNumber } from '../lib/axios.ts';
+import { getParameters, deleteParameter, deleteSoil, saveParameterData } from '../lib/dataService.ts';
 // @ts-ignore
 import { Table, Row } from 'react-native-table-component';
 import { dashboardStyles } from '../assets/styles/DashboardStyles.ts';
@@ -137,14 +138,16 @@ export default function SoilDetailsScreen() {
             };
 
             const updateParameterData: UpdateParameterRequest = {
-                Soil_ID: idToNumber(soil.Soil_ID).toString(),
+                Soil_ID: soil.Soil_ID,
                 Parameters: parameterData
             };
 
+            // This creates a new parameter with updated comments (keeps history)
+            // The backend will create the proper Parameter_ID and Date_Recorded
             await saveParameterData(updateParameterData);
             
             setIsFullScreenModalVisible(false);
-            Alert.alert('Success',`Successfully updated comments for:\nSoil ID: ${soil.Soil_ID}\nSoil Name: ${soil.Soil_Name}`, [
+            Alert.alert('Success',`Successfully saved updated comments for:\nSoil ID: ${soil.Soil_ID}\nSoil Name: ${soil.Soil_Name}\n\nNote: The new parameter will appear after refreshing or syncing.`, [
                 {
                     text: 'OK',
                     onPress: () => fetchParameters()

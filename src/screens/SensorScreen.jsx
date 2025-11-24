@@ -14,7 +14,8 @@ import NarraSoilSuitability from '../components/NarraSoilSuitability.tsx';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
 import { buildGeneratorPayload, calculateNarraSuitability, predictSoilType } from '../lib/soilParameterUtils.ts';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
-import { saveSoilData, getSoil, saveParameterData, idToNumber, predictNarraSuitability } from '../lib/axios.ts';
+import { idToNumber, predictNarraSuitability } from '../lib/axios.ts';
+import { saveSoilData, saveParameterData, getSoils } from '../lib/dataService.ts';
 
 export default function SensorScreen() {
     const navigation = useNavigation();
@@ -156,7 +157,7 @@ export default function SensorScreen() {
             if (!isModalVisible || selectAction !== 'Update') return;
             
             try {
-                const soilList = await getSoil();
+                const soilList = await getSoils();
                 setSoilIDList(soilList.map(soil => [soil.Soil_ID, soil.Soil_Name]));
             } catch (error) {
                 console.error('Error getting soil list:', error);
@@ -289,9 +290,9 @@ export default function SensorScreen() {
                 }
             };
             console.log('New soil data:', newSoilData);
-            const savedSoilData = await saveSoilData(newSoilData);
-            console.log('Saved soil data:', savedSoilData);
-            Alert.alert('Soil saved successfully');
+            await saveSoilData(newSoilData);
+            console.log('Saved soil data to local database');
+            Alert.alert('Success', 'Soil data saved successfully to local database. Sync when ready.');
             setIsModalVisible(false);
             setComments('Comments');
             navigation.navigate('Home');
@@ -309,16 +310,9 @@ export default function SensorScreen() {
             return;
         }
 
-        // Convert soil ID from "S0026" format to numeric 26
-        const numericSoilID = idToNumber(soilID);
-        if (isNaN(numericSoilID)) {
-            Alert.alert('Error', 'Invalid Soil ID format');
-            return;
-        }
-
         try {
             const newParameterData = {
-                Soil_ID: numericSoilID,
+                Soil_ID: soilID,
                 Parameters: {
                     Hum: soilData.moisture,
                     Temp: soilData.temperature,
@@ -331,9 +325,9 @@ export default function SensorScreen() {
                 }
             };
             console.log('New parameter data:', newParameterData);
-            const updatedParameterData = await saveParameterData(newParameterData);
-            console.log('Updated parameter data:', updatedParameterData);
-            Alert.alert('Success', 'Parameter updated successfully');
+            await saveParameterData(newParameterData);
+            console.log('Parameter data saved to local database');
+            Alert.alert('Success', 'Parameter saved successfully to local database. Sync when ready.');
             setIsModalVisible(false);
             setComments('Comments');
             setSoilID('Select Soil ID');
