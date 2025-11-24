@@ -539,8 +539,8 @@ function Update({soilData, setIsModalVisible}) {
                 visible={showPicker} transparent animationType="slide"
                 onRequestClose={handlePickerClose}
             >
-                <View style={sensorScreenStyles.modalContainer}>
-                    <View style={sensorScreenStyles.modalContent}>
+                <View style={sensorScreenStyles.pickerModalContainer}>
+                    <View style={sensorScreenStyles.pickerModalContent}>
                         <Text style={sensorScreenStyles.modalTitle}>Select Soil ID</Text>
                         <ScrollView style={sensorScreenStyles.pickerScrollView}>
                             {soilIDList.map(([id, name]) => (
