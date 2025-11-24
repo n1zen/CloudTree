@@ -28,6 +28,7 @@ export default function SensorScreen() {
     const [connectionStatus, setConnectionStatus] = useState('Disconnected');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectAction, setSelectAction] = useState('Save');
+    const [parameterInsights, setParameterInsights] = useState({});
 
     useEffect(() => {
         let client;
@@ -95,6 +96,15 @@ export default function SensorScreen() {
         };
     }, [shouldConnect]);
 
+    useEffect(() => {
+        const commentData = generateAutoComment(buildGeneratorPayload(soilData));
+        const insightsMap = commentData.analyses.reduce((acc, analysis) => {
+            acc[analysis.field] = analysis;
+            return acc;
+        }, {});
+        setParameterInsights(insightsMap);
+    }, [soilData]);
+
     const connectToBroker = () => {
         setShouldConnect(true);
     }
@@ -129,6 +139,7 @@ export default function SensorScreen() {
                                     <Text>{soilData.moisture} %</Text>
                                     <StatusIndicator field="Hum" value={soilData.moisture} />
                                 </View>
+                                <ParameterAdvice field="Hum" parameterInsights={parameterInsights} />
                             </View>
                             <View style={sensorScreenStyles.fullCard}>
                                 <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
@@ -136,6 +147,7 @@ export default function SensorScreen() {
                                     <Text>{soilData.temperature} °C</Text>
                                     <StatusIndicator field="Temp" value={soilData.temperature} />
                                 </View>
+                                <ParameterAdvice field="Temp" parameterInsights={parameterInsights} />
                             </View>
                             <View style={sensorScreenStyles.fullCard}>
                                 <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
@@ -143,6 +155,7 @@ export default function SensorScreen() {
                                     <Text>{soilData.electricalConductivity} us/cm</Text>
                                     <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
                                 </View>
+                                <ParameterAdvice field="Ec" parameterInsights={parameterInsights} />
                             </View>
                             <View style={sensorScreenStyles.fullCard}>
                                 <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
@@ -150,6 +163,7 @@ export default function SensorScreen() {
                                     <Text>{soilData.phLevel} pH</Text>
                                     <StatusIndicator field="Ph" value={soilData.phLevel} />
                                 </View>
+                                <ParameterAdvice field="Ph" parameterInsights={parameterInsights} />
                             </View>
                             <View style={sensorScreenStyles.fullCard}>
                                 <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
@@ -157,14 +171,17 @@ export default function SensorScreen() {
                                     <Text>N: {soilData.nitrogen} mg/kg</Text>
                                     <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
                                 </View>
+                                <ParameterAdvice field="Nitrogen" parameterInsights={parameterInsights} />
                                 <View style={sensorScreenStyles.cardRow}>
                                     <Text>P: {soilData.phosphorus} mg/kg</Text>
                                     <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
                                 </View>
+                                <ParameterAdvice field="Phosphorus" parameterInsights={parameterInsights} />
                                 <View style={sensorScreenStyles.cardRow}>
                                     <Text>K: {soilData.potassium} mg/kg</Text>
                                     <StatusIndicator field="Potassium" value={soilData.potassium} />
                                 </View>
+                                <ParameterAdvice field="Potassium" parameterInsights={parameterInsights} />
                             </View>
                         </View>     
                     </View>
@@ -191,7 +208,9 @@ export default function SensorScreen() {
                         <View style={sensorScreenStyles.modalContainer}>
                             <View style={sensorScreenStyles.modalContent}>
                                 <UpdateSaveRadio onSelect={setSelectAction} selected={selectAction}/>
-                                {selectAction === 'Save' ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} /> : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} />}
+                                {selectAction === 'Save'
+                                    ? <Save soilData={soilData} setIsModalVisible={setIsModalVisible} parameterInsights={parameterInsights} />
+                                    : <Update soilData={soilData} setIsModalVisible={setIsModalVisible} parameterInsights={parameterInsights} />}
                             </View>
                         </View>
                     </ScrollView>
@@ -201,7 +220,7 @@ export default function SensorScreen() {
     );
 }
 
-function Save({soilData, setIsModalVisible}) {
+function Save({soilData, setIsModalVisible, parameterInsights}) {
     const [location, setLocation] = useState(null);
     const [locationPermission, setLocationPermission] = useState(false);
     const [locationError, setLocationError] = useState(null);
@@ -237,15 +256,7 @@ function Save({soilData, setIsModalVisible}) {
     },[])
 
     const generateComment = () => {
-        const commentData = generateAutoComment({
-            Hum: soilData.moisture,
-            Temp: soilData.temperature,
-            Ec: soilData.electricalConductivity,
-            Ph: soilData.phLevel,
-            Nitrogen: soilData.nitrogen,
-            Phosphorus: soilData.phosphorus,
-            Potassium: soilData.potassium
-        });
+        const commentData = generateAutoComment(buildGeneratorPayload(soilData));
         
         const formattedComment = formatCommentData(commentData);
         setComments(formattedComment);
@@ -332,6 +343,7 @@ function Save({soilData, setIsModalVisible}) {
                         <Text>{soilData.moisture} %</Text>
                         <StatusIndicator field="Hum" value={soilData.moisture} />
                     </View>
+                    <ParameterAdvice field="Hum" parameterInsights={parameterInsights} />
                 </View>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
@@ -339,6 +351,7 @@ function Save({soilData, setIsModalVisible}) {
                         <Text>{soilData.temperature} °C</Text>
                         <StatusIndicator field="Temp" value={soilData.temperature} />
                     </View>
+                    <ParameterAdvice field="Temp" parameterInsights={parameterInsights} />
                 </View>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
@@ -346,6 +359,7 @@ function Save({soilData, setIsModalVisible}) {
                         <Text>{soilData.electricalConductivity} us/cm</Text>
                         <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
                     </View>
+                    <ParameterAdvice field="Ec" parameterInsights={parameterInsights} />
                 </View>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
@@ -353,6 +367,7 @@ function Save({soilData, setIsModalVisible}) {
                         <Text>{soilData.phLevel} pH</Text>
                         <StatusIndicator field="Ph" value={soilData.phLevel} />
                     </View>
+                    <ParameterAdvice field="Ph" parameterInsights={parameterInsights} />
                 </View>
                     <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
@@ -360,14 +375,17 @@ function Save({soilData, setIsModalVisible}) {
                         <Text>N: {soilData.nitrogen} mg/kg</Text>
                         <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
                     </View>
+                    <ParameterAdvice field="Nitrogen" parameterInsights={parameterInsights} />
                     <View style={sensorScreenStyles.cardRow}>
                         <Text>P: {soilData.phosphorus} mg/kg</Text>
                         <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
                     </View>
+                    <ParameterAdvice field="Phosphorus" parameterInsights={parameterInsights} />
                     <View style={sensorScreenStyles.cardRow}>
                         <Text>K: {soilData.potassium} mg/kg</Text>
                         <StatusIndicator field="Potassium" value={soilData.potassium} />
                     </View>
+                    <ParameterAdvice field="Potassium" parameterInsights={parameterInsights} />
                 </View>
             </View>
             <TextInput
@@ -440,7 +458,7 @@ function Save({soilData, setIsModalVisible}) {
     );
 }
 
-function Update({soilData, setIsModalVisible}) {
+function Update({soilData, setIsModalVisible, parameterInsights}) {
 
     const [soilID, setSoilID] = useState('Select Soil ID');
     const [soilName, setSoilName] = useState('Soil Name');
@@ -475,15 +493,7 @@ function Update({soilData, setIsModalVisible}) {
     }
 
     const generateComment = () => {
-        const commentData = generateAutoComment({
-            Hum: soilData.moisture,
-            Temp: soilData.temperature,
-            Ec: soilData.electricalConductivity,
-            Ph: soilData.phLevel,
-            Nitrogen: soilData.nitrogen,
-            Phosphorus: soilData.phosphorus,
-            Potassium: soilData.potassium
-        });
+        const commentData = generateAutoComment(buildGeneratorPayload(soilData));
 
         const formattedComment = formatCommentData(commentData);
         setComments(formattedComment);
@@ -567,6 +577,7 @@ function Update({soilData, setIsModalVisible}) {
                         <Text>{soilData.moisture} %</Text>
                         <StatusIndicator field="Hum" value={soilData.moisture} />
                     </View>
+                    <ParameterAdvice field="Hum" parameterInsights={parameterInsights} />
                 </View>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>Soil Temperature</Text>
@@ -574,6 +585,7 @@ function Update({soilData, setIsModalVisible}) {
                         <Text>{soilData.temperature} °C</Text>
                         <StatusIndicator field="Temp" value={soilData.temperature} />
                     </View>
+                    <ParameterAdvice field="Temp" parameterInsights={parameterInsights} />
                 </View>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>Electrical Conductivity</Text>
@@ -581,6 +593,7 @@ function Update({soilData, setIsModalVisible}) {
                         <Text>{soilData.electricalConductivity} us/cm</Text>
                         <StatusIndicator field="Ec" value={soilData.electricalConductivity} />
                     </View>
+                    <ParameterAdvice field="Ec" parameterInsights={parameterInsights} />
                 </View>
                 <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>pH Level</Text>
@@ -588,6 +601,7 @@ function Update({soilData, setIsModalVisible}) {
                         <Text>{soilData.phLevel} pH</Text>
                         <StatusIndicator field="Ph" value={soilData.phLevel} />
                     </View>
+                    <ParameterAdvice field="Ph" parameterInsights={parameterInsights} />
                 </View>
                     <View style={sensorScreenStyles.fullCard}>
                     <Text style={sensorScreenStyles.cardHeader}>NPK</Text>
@@ -595,14 +609,17 @@ function Update({soilData, setIsModalVisible}) {
                         <Text>N: {soilData.nitrogen} mg/kg</Text>
                         <StatusIndicator field="Nitrogen" value={soilData.nitrogen} />
                     </View>
+                    <ParameterAdvice field="Nitrogen" parameterInsights={parameterInsights} />
                     <View style={sensorScreenStyles.cardRow}>
                         <Text>P: {soilData.phosphorus} mg/kg</Text>
                         <StatusIndicator field="Phosphorus" value={soilData.phosphorus} />
                     </View>
+                    <ParameterAdvice field="Phosphorus" parameterInsights={parameterInsights} />
                     <View style={sensorScreenStyles.cardRow}>
                         <Text>K: {soilData.potassium} mg/kg</Text>
                         <StatusIndicator field="Potassium" value={soilData.potassium} />
                     </View>
+                    <ParameterAdvice field="Potassium" parameterInsights={parameterInsights} />
                 </View>
             </View>
             <TextInput
@@ -673,4 +690,43 @@ function Update({soilData, setIsModalVisible}) {
             </Modal>
         </View>
     );
+}
+
+function ParameterAdvice({ field, parameterInsights }) {
+    const analysis = parameterInsights?.[field];
+    if (!analysis) {
+        return null;
+    }
+
+    const isOptimal = analysis.status === 'optimal';
+    const statusColorStyle = isOptimal
+        ? sensorScreenStyles.adviceStatusOptimal
+        : analysis.status === 'critical'
+            ? sensorScreenStyles.adviceStatusCritical
+            : sensorScreenStyles.adviceStatusWarning;
+
+    return (
+        <View style={sensorScreenStyles.adviceContainer}>
+            <Text style={[sensorScreenStyles.adviceStatusText, statusColorStyle]}>
+                {analysis.message}
+            </Text>
+            {!isOptimal && (
+                <Text style={sensorScreenStyles.adviceRecommendationText}>
+                    {analysis.recommendation}
+                </Text>
+            )}
+        </View>
+    );
+}
+
+function buildGeneratorPayload(soilData) {
+    return {
+        Hum: soilData.moisture,
+        Temp: soilData.temperature,
+        Ec: soilData.electricalConductivity,
+        Ph: soilData.phLevel,
+        Nitrogen: soilData.nitrogen,
+        Phosphorus: soilData.phosphorus,
+        Potassium: soilData.potassium,
+    };
 }

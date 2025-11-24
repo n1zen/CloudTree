@@ -296,4 +296,28 @@ export const sensorScreenStyles = StyleSheet.create({
     fullScreenModalSaveButton: {
         backgroundColor: colors.success,
     },
+    adviceContainer: {
+        marginTop: 8,
+        paddingTop: 6,
+        borderTopWidth: 1,
+        borderTopColor: colors.accent,
+    },
+    adviceStatusText: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    adviceRecommendationText: {
+        fontSize: 12,
+        color: colors.dark,
+        marginTop: 2,
+    },
+    adviceStatusOptimal: {
+        color: colors.success,
+    },
+    adviceStatusWarning: {
+        color: colors.warning,
+    },
+    adviceStatusCritical: {
+        color: colors.danger,
+    },
 });
