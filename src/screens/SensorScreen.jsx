@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Button, Modal, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import * as Paho from 'paho-mqtt';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { colors } from '../assets/styles/Colors.ts';
 import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
@@ -15,10 +15,12 @@ import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.
 import { buildGeneratorPayload, calculateNarraSuitability, predictSoilType } from '../lib/soilParameterUtils.ts';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
 import { idToNumber, predictNarraSuitability } from '../lib/axios.ts';
-import { saveSoilData, saveParameterData, getSoils } from '../lib/dataService.ts';
+import { saveSoilData, saveParameterData, getSoils, checkConnectivity } from '../lib/dataService.ts';
 
 export default function SensorScreen() {
     const navigation = useNavigation();
+    const [isBackendOnline, setIsBackendOnline] = useState(true);
+    const [isCheckingBackend, setIsCheckingBackend] = useState(true);
     const [soilData, setSoilData] = useState({
         moisture: 0,
         temperature: 0,
@@ -49,6 +51,19 @@ export default function SensorScreen() {
     const [updateSoilName, setUpdateSoilName] = useState('Soil Name');
     const [showPicker, setShowPicker] = useState(false);
     const [soilIDList, setSoilIDList] = useState([]);
+
+    // Check backend connectivity every time screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            const checkBackend = async () => {
+                setIsCheckingBackend(true);
+                const online = await checkConnectivity();
+                setIsBackendOnline(online);
+                setIsCheckingBackend(false);
+            };
+            checkBackend();
+        }, [])
+    );
 
     useEffect(() => {
         let client;
@@ -338,6 +353,50 @@ export default function SensorScreen() {
             Alert.alert('Error', 'Failed to update parameter data. Please check the console for details.');
         }
     };
+
+    // Show loading state while checking backend
+    if (isCheckingBackend) {
+        return (
+            <View style={[sensorScreenStyles.mainContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ fontSize: 18, color: colors.dark }}>Checking sensor availability...</Text>
+            </View>
+        );
+    }
+
+    // Show "Sensor Unavailable" message if backend is offline
+    if (!isBackendOnline) {
+        return (
+            <View style={[sensorScreenStyles.mainContainer, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+                <Text style={{ 
+                    fontSize: 24, 
+                    fontWeight: 'bold', 
+                    color: colors.danger,
+                    marginBottom: 12,
+                    textAlign: 'center'
+                }}>
+                    Sensor Unavailable
+                </Text>
+                <Text style={{ 
+                    fontSize: 16, 
+                    color: colors.dark,
+                    textAlign: 'center',
+                    marginBottom: 20
+                }}>
+                    The backend server is currently offline. Please check your connection and try again.
+                </Text>
+                <Button
+                    title="Retry Connection"
+                    onPress={async () => {
+                        setIsCheckingBackend(true);
+                        const online = await checkConnectivity();
+                        setIsBackendOnline(online);
+                        setIsCheckingBackend(false);
+                    }}
+                    color={colors.primary}
+                />
+            </View>
+        );
+    }
 
     return (
         <ScrollView>
