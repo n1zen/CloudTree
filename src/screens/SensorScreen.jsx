@@ -14,7 +14,7 @@ import NarraSoilSuitability from '../components/NarraSoilSuitability.tsx';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
 import { buildGeneratorPayload, calculateNarraSuitability, predictSoilType } from '../lib/soilParameterUtils.ts';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
-import { saveSoilData, getSoil, saveParameterData } from '../lib/axios.ts';
+import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
 
 export default function SensorScreen() {
     const navigation = useNavigation();
@@ -265,9 +265,22 @@ export default function SensorScreen() {
     };
 
     const handleUpdate = async () => {
+        // Validate that a soil ID has been selected
+        if (soilID === 'Select Soil ID' || !soilID) {
+            Alert.alert('Error', 'Please select a Soil ID before updating');
+            return;
+        }
+
+        // Convert soil ID from "S0026" format to numeric 26
+        const numericSoilID = idToNumber(soilID);
+        if (isNaN(numericSoilID)) {
+            Alert.alert('Error', 'Invalid Soil ID format');
+            return;
+        }
+
         try {
             const newParameterData = {
-                Soil_ID: soilID,
+                Soil_ID: numericSoilID,
                 Parameters: {
                     Hum: soilData.moisture,
                     Temp: soilData.temperature,
@@ -282,13 +295,15 @@ export default function SensorScreen() {
             console.log('New parameter data:', newParameterData);
             const updatedParameterData = await saveParameterData(newParameterData);
             console.log('Updated parameter data:', updatedParameterData);
-            Alert.alert('Parameter updated successfully');
+            Alert.alert('Success', 'Parameter updated successfully');
             setIsModalVisible(false);
             setComments('Comments');
+            setSoilID('Select Soil ID');
+            setUpdateSoilName('Soil Name');
             navigation.navigate('Home');
         } catch (error) {
             console.error('Error updating parameter data:', error);
-            Alert.alert('Error', 'Failed to update parameter data');
+            Alert.alert('Error', 'Failed to update parameter data. Please check the console for details.');
         }
     };
 
