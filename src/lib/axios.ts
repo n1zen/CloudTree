@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getDefaultIp, getHttpPort } from './config.ts';
-import { CreateSoilRequest, SoilList, ParameterList, UpdateParameterRequest } from './types.ts';
+import { CreateSoilRequest, SoilList, ParameterList, UpdateParameterRequest, XAISuitabilityRequest, XAISuitabilityResponse } from './types.ts';
 
 // const defaultIp = 'cloudtree.local';
 // const httpPort = '8000';
@@ -58,34 +58,46 @@ export async function getParameters(Soil_ID: string): Promise<ParameterList[]>{
 // Save New Soil
 export async function saveSoilData(soilData: CreateSoilRequest): Promise<CreateSoilRequest> {
     try {
+        console.log('Sending soil data to backend:', JSON.stringify(soilData, null, 2));
         const response = await api.post('/create/soil/', soilData);
         if(response.status === 200) {
             return response.data;
         } else {
             console.error('Failed to save soil data: ' + response.status);
-            console.log(response.data);
+            console.log('Response data:', response.data);
             throw new Error('Failed to save soil data: ' + response.status);
         }
-    } catch (error) {
-        console.error('Failed to save soil data: ' + error);
-        throw new Error('Failed to save soil data: ' + error);
+    } catch (error: any) {
+        console.error('Failed to save soil data:', error);
+        if (error.response) {
+            console.error('Error status:', error.response.status);
+            console.error('Error data:', error.response.data);
+            console.error('Sent data:', JSON.stringify(soilData, null, 2));
+        }
+        throw new Error('Failed to save soil data: ' + (error.response?.status || error.message));
     }
 };
 
 // Save New Parameter for a Soil
 export async function saveParameterData(parameterData: UpdateParameterRequest): Promise<UpdateParameterRequest> {
     try {
+        console.log('Sending parameter data to backend:', JSON.stringify(parameterData, null, 2));
         const response = await api.post(`/add/parameter/`, parameterData);
         if(response.status === 200) {   
             return response.data;
         } else {
             console.error('Failed to save parameter data: ' + response.status);
-            console.log(response.data);
+            console.log('Response data:', response.data);
             throw new Error('Failed to save parameter data: ' + response.status);
         }
-    } catch (error) {
-        console.error('Failed to save parameter data: ' + error);
-        throw new Error('Failed to save parameter data: ' + error);
+    } catch (error: any) {
+        console.error('Failed to save parameter data:', error);
+        if (error.response) {
+            console.error('Error status:', error.response.status);
+            console.error('Error data:', error.response.data);
+            console.error('Sent data:', JSON.stringify(parameterData, null, 2));
+        }
+        throw new Error('Failed to save parameter data: ' + (error.response?.status || error.message));
     }
 }
 
@@ -121,5 +133,23 @@ export async function deleteSoil(soilID: string): Promise<void> {
     } catch (error) {
         console.error('Failed to delete soil data: ' + error);
         throw new Error('Failed to delete soil data: ' + error);
+    }
+}
+
+// XAI PREDICTION FUNCTIONS
+// Predict Narra Tree Soil Suitability using XAI Model
+export async function predictNarraSuitability(soilData: XAISuitabilityRequest): Promise<XAISuitabilityResponse> {
+    try {
+        const response = await api.post('/predict/suitability', soilData);
+        if(response.status === 200) {
+            return response.data;
+        } else {
+            console.error('Failed to predict suitability: ' + response.status);
+            console.log(response.data);
+            throw new Error('Failed to predict suitability: ' + response.status);
+        }
+    } catch (error) {
+        console.error('Failed to predict suitability: ' + error);
+        throw new Error('Failed to predict suitability: ' + error);
     }
 }

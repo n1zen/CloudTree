@@ -293,4 +293,58 @@ export const dashboardStyles = StyleSheet.create({
         borderRadius: 8,
         width: '100%',
     },
+    // Sync UI Styles
+    statusBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: colors.bgLight2,
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 12,
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    statusItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    statusText: {
+        fontSize: 14,
+        color: colors.dark,
+        fontWeight: '600',
+    },
+    syncButtonContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 12,
+    },
+    syncButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.primary,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        borderRadius: 8,
+        gap: 6,
+        minHeight: 44,
+        minWidth: 90,
+    },
+    syncButtonFull: {
+        flex: 1.5,
+        minWidth: 110,
+    },
+    syncButtonText: {
+        color: colors.light,
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    syncButtonTextSmall: {
+        color: colors.light,
+        fontSize: 14,
+        fontWeight: '600',
+    },
 });

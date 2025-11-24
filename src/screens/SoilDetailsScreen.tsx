@@ -1,8 +1,9 @@
-import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal, Touchable } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, ScrollView, Dimensions, TextInput, Modal, Linking } from 'react-native';
 import { useEffect, useState } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ParameterList, SoilList, ParameterRequest, UpdateParameterRequest } from '../lib/types.ts';
-import { getParameters, deleteParameter, deleteSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
+import { idToNumber } from '../lib/axios.ts';
+import { getParameters, deleteParameter, deleteSoil, saveParameterData } from '../lib/dataService.ts';
 // @ts-ignore
 import { Table, Row } from 'react-native-table-component';
 import { dashboardStyles } from '../assets/styles/DashboardStyles.ts';
@@ -110,6 +111,14 @@ export default function SoilDetailsScreen() {
         });
     }
 
+    const handleOpenInMaps = () => {
+        const url = `https://www.google.com/maps/search/?api=1&query=${soil.Loc_Latitude},${soil.Loc_Longitude}`;
+        Linking.openURL(url).catch(err => {
+            console.error('Failed to open maps:', err);
+            Alert.alert('Error', 'Could not open Google Maps');
+        });
+    }
+
     const handleRowPress = (parameter: ParameterList) => {
         setLatestParameter(parameter);
     }
@@ -137,14 +146,16 @@ export default function SoilDetailsScreen() {
             };
 
             const updateParameterData: UpdateParameterRequest = {
-                Soil_ID: idToNumber(soil.Soil_ID).toString(),
+                Soil_ID: soil.Soil_ID,
                 Parameters: parameterData
             };
 
+            // This creates a new parameter with updated comments (keeps history)
+            // The backend will create the proper Parameter_ID and Date_Recorded
             await saveParameterData(updateParameterData);
             
             setIsFullScreenModalVisible(false);
-            Alert.alert('Success',`Successfully updated comments for:\nSoil ID: ${soil.Soil_ID}\nSoil Name: ${soil.Soil_Name}`, [
+            Alert.alert('Success',`Successfully saved updated comments for:\nSoil ID: ${soil.Soil_ID}\nSoil Name: ${soil.Soil_Name}\n\nNote: The new parameter will appear after refreshing or syncing.`, [
                 {
                     text: 'OK',
                     onPress: () => fetchParameters()
@@ -199,107 +210,87 @@ export default function SoilDetailsScreen() {
                              <Text style={dashboardStyles.fieldValue}>{soil.Loc_Longitude}</Text>
                          </View>
                          <View style={dashboardStyles.actionBar}>
+                             <Button title="Open in Google Maps" onPress={handleOpenInMaps} color={colors.info} />
+                         </View>
+                         <View style={dashboardStyles.actionBar}>
                              <Button title="Delete All" onPress={() => handleDeleteAll(soil.Soil_ID)} color={colors.danger} />
                          </View>
                      </View>
                      {latestParameter && (
                          <View key={`latest-${latestParameter.Parameter_ID}`} style={dashboardStyles.card}>
-                            <Text style={dashboardStyles.cardHeader}>Latest Reading</Text>
+                            <Text style={dashboardStyles.cardHeader}>Latest Reading - ID: {latestParameter.Parameter_ID}</Text>
                             <View style={dashboardStyles.fieldRow}>
-                                <Text style={dashboardStyles.fieldLabel}>ID</Text>
-                                <Text style={dashboardStyles.fieldValue}>{latestParameter.Parameter_ID}</Text>
-                             </View>
-                            <View style={dashboardStyles.fieldRow}>
-                                <Text style={dashboardStyles.fieldLabel}>Hum</Text>
-                                <View style={{flexDirection: 'row', gap: 8}}>
+                                <Text style={dashboardStyles.fieldLabel}>Soil Moisture</Text>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Hum} %</Text>
                                     <StatusIndicator field="Hum" value={latestParameter.Hum} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
-                                <Text style={dashboardStyles.fieldLabel}>Temp</Text>   
-                                <View style={{flexDirection: 'row', gap: 8}}>
+                                <Text style={dashboardStyles.fieldLabel}>Soil Temperature</Text>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Temp} °C</Text>
                                     <StatusIndicator field="Temp" value={latestParameter.Temp} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
-                                <Text style={dashboardStyles.fieldLabel}>Ec</Text>
-                                <View style={{flexDirection: 'row', gap: 8}}>
-                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Ec} us/cm</Text>
+                                <Text style={dashboardStyles.fieldLabel}>Electrical Conductivity</Text>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                                    <Text style={dashboardStyles.fieldValue}>{latestParameter.Ec} µS/cm</Text>
                                     <StatusIndicator field="Ec" value={latestParameter.Ec} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
-                                <Text style={dashboardStyles.fieldLabel}>Ph</Text>
-                                <View style={{flexDirection: 'row', gap: 8}}>
+                                <Text style={dashboardStyles.fieldLabel}>pH Level</Text>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Ph} pH</Text>
                                     <StatusIndicator field="Ph" value={latestParameter.Ph} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Nitrogen</Text>
-                                <View style={{flexDirection: 'row', gap: 8}}>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Nitrogen} mg/kg</Text>
                                     <StatusIndicator field="Nitrogen" value={latestParameter.Nitrogen} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Phosphorus</Text>
-                                <View style={{flexDirection: 'row', gap: 8}}>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Phosphorus} mg/kg</Text>
                                     <StatusIndicator field="Phosphorus" value={latestParameter.Phosphorus} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
                                 <Text style={dashboardStyles.fieldLabel}>Potassium</Text>
-                                <View style={{flexDirection: 'row', gap: 8}}>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
                                     <Text style={dashboardStyles.fieldValue}>{latestParameter.Potassium} mg/kg</Text>
                                     <StatusIndicator field="Potassium" value={latestParameter.Potassium} />
                                 </View>
                             </View>
                             <View style={dashboardStyles.fieldRow}>
-                                <Text style={dashboardStyles.fieldLabel}>Comments</Text>
-                                <View style={{ flex: 1 }}>
-                                    <TextInput 
-                                        style={[
-                                            dashboardStyles.textareaReadOnly,
-                                        ]} 
-                                        value={latestParameter.Comments || ''} 
-                                        multiline 
-                                        numberOfLines={5}
-                                    />
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        marginTop: 8,
-                                        gap: 8,
-                                    }}>
-                                        <TouchableOpacity 
-                                            style={{
-                                                paddingHorizontal: 16,
-                                                paddingVertical: 8,
-                                                borderRadius: 6,
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                minWidth: 80,
-                                                backgroundColor: colors.primary,
-                                            }}
-                                            onPress={handleOpenFullScreenComments}
-                                        >
-                                            <Text style={{
-                                                fontSize: 14,
-                                                fontWeight: '600',
-                                                color: colors.light,
-                                            }}>Full Screen</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
+                                <Text style={dashboardStyles.fieldLabel}>Date Recorded</Text>
+                                <Text style={dashboardStyles.fieldValue}>{latestParameter.Date_Recorded}</Text>
                             </View>
-                             <View style={dashboardStyles.fieldRow}>
-                                <Text style={dashboardStyles.fieldLabel}>Recorded</Text>
-                                <Text style={dashboardStyles.fieldValue}>{latestParameter.Date_Recorded}</Text></View>
+                            <View style={{marginTop: 8, marginBottom: 8}}>
+                                <Text style={dashboardStyles.fieldLabel}>Comments</Text>
+                                <TextInput 
+                                    style={dashboardStyles.textareaReadOnly} 
+                                    value={latestParameter.Comments || ''} 
+                                    multiline 
+                                    numberOfLines={5}
+                                    editable={false}
+                                />
+                            </View>
                             <View style={dashboardStyles.actionBar}>
-                                <Button title="Delete" onPress={() => handleDelete(latestParameter.Parameter_ID)} color={colors.danger} />
+                                <Button
+                                    title="Edit Comments (Full Screen)"
+                                    onPress={handleOpenFullScreenComments}
+                                    color={colors.secondary}
+                                />
+                            </View>
+                            <View style={dashboardStyles.actionBar}>
+                                <Button title="Delete Reading" onPress={() => handleDelete(latestParameter.Parameter_ID)} color={colors.danger} />
                             </View>
                          </View>
                      )}

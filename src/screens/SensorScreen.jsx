@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Button, Modal, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import * as Paho from 'paho-mqtt';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { colors } from '../assets/styles/Colors.ts';
 import { sensorScreenStyles } from '../assets/styles/SensorScreen.ts';
@@ -14,10 +14,13 @@ import NarraSoilSuitability from '../components/NarraSoilSuitability.tsx';
 import { generateAutoComment, formatCommentData } from '../lib/commentGenerator.ts';
 import { buildGeneratorPayload, calculateNarraSuitability, predictSoilType } from '../lib/soilParameterUtils.ts';
 import { requestLocationPermission, getCurrentLocation } from '../lib/locService.ts';
-import { saveSoilData, getSoil, saveParameterData, idToNumber } from '../lib/axios.ts';
+import { idToNumber, predictNarraSuitability } from '../lib/axios.ts';
+import { saveSoilData, saveParameterData, getSoils, checkConnectivity } from '../lib/dataService.ts';
 
 export default function SensorScreen() {
     const navigation = useNavigation();
+    const [isBackendOnline, setIsBackendOnline] = useState(true);
+    const [isCheckingBackend, setIsCheckingBackend] = useState(true);
     const [soilData, setSoilData] = useState({
         moisture: 0,
         temperature: 0,
@@ -48,6 +51,19 @@ export default function SensorScreen() {
     const [updateSoilName, setUpdateSoilName] = useState('Soil Name');
     const [showPicker, setShowPicker] = useState(false);
     const [soilIDList, setSoilIDList] = useState([]);
+
+    // Check backend connectivity every time screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            const checkBackend = async () => {
+                setIsCheckingBackend(true);
+                const online = await checkConnectivity();
+                setIsBackendOnline(online);
+                setIsCheckingBackend(false);
+            };
+            checkBackend();
+        }, [])
+    );
 
     useEffect(() => {
         let client;
@@ -156,7 +172,7 @@ export default function SensorScreen() {
             if (!isModalVisible || selectAction !== 'Update') return;
             
             try {
-                const soilList = await getSoil();
+                const soilList = await getSoils();
                 setSoilIDList(soilList.map(soil => [soil.Soil_ID, soil.Soil_Name]));
             } catch (error) {
                 console.error('Error getting soil list:', error);
@@ -169,22 +185,43 @@ export default function SensorScreen() {
     useEffect(() => {
         if (!isModalVisible) return;
         
-        try {
-            const commentData = generateAutoComment(buildGeneratorPayload(soilData));
-            const soilSuitability = calculateNarraSuitability(soilData);
-            const soilTypeData = predictSoilType(soilData);
-            
-            const formattedComment = formatCommentData(
-                commentData, 
-                selectAction === 'Save' ? 'save' : 'update',
-                soilSuitability,
-                soilTypeData
-            );
-            setComments(formattedComment);
-        } catch (error) {
-            console.error('Error generating comments:', error);
-            setComments('Comments');
-        }
+        const generateCommentsWithXAI = async () => {
+            try {
+                const commentData = generateAutoComment(buildGeneratorPayload(soilData));
+                const soilSuitability = calculateNarraSuitability(soilData);
+                const soilTypeData = predictSoilType(soilData);
+                
+                // Try to get XAI prediction
+                let xaiPrediction = null;
+                try {
+                    xaiPrediction = await predictNarraSuitability({
+                        moisture: soilData.moisture,
+                        temperature: soilData.temperature,
+                        ec: soilData.electricalConductivity,
+                        ph: soilData.phLevel,
+                        nitrogen: soilData.nitrogen,
+                        phosphorus: soilData.phosphorus,
+                        potassium: soilData.potassium,
+                    });
+                } catch (xaiError) {
+                    console.log('XAI prediction not available, using local calculation');
+                }
+                
+                const formattedComment = formatCommentData(
+                    commentData, 
+                    selectAction === 'Save' ? 'save' : 'update',
+                    soilSuitability,
+                    soilTypeData,
+                    xaiPrediction
+                );
+                setComments(formattedComment);
+            } catch (error) {
+                console.error('Error generating comments:', error);
+                setComments('Comments');
+            }
+        };
+        
+        generateCommentsWithXAI();
     }, [isModalVisible, selectAction]);
 
     const connectToBroker = () => {
@@ -198,17 +235,34 @@ export default function SensorScreen() {
         console.log('Modal visibility set to true');
     };
 
-    const generateComment = () => {
+    const generateComment = async () => {
         try {
             const commentData = generateAutoComment(buildGeneratorPayload(soilData));
             const soilSuitability = calculateNarraSuitability(soilData);
             const soilTypeData = predictSoilType(soilData);
             
+            // Try to get XAI prediction
+            let xaiPrediction = null;
+            try {
+                xaiPrediction = await predictNarraSuitability({
+                    moisture: soilData.moisture,
+                    temperature: soilData.temperature,
+                    ec: soilData.electricalConductivity,
+                    ph: soilData.phLevel,
+                    nitrogen: soilData.nitrogen,
+                    phosphorus: soilData.phosphorus,
+                    potassium: soilData.potassium,
+                });
+            } catch (xaiError) {
+                console.log('XAI prediction not available, using local calculation');
+            }
+            
             const formattedComment = formatCommentData(
                 commentData,
                 selectAction === 'Save' ? 'save' : 'update',
                 soilSuitability,
-                soilTypeData
+                soilTypeData,
+                xaiPrediction
             );
             setComments(formattedComment);
         } catch (error) {
@@ -251,9 +305,9 @@ export default function SensorScreen() {
                 }
             };
             console.log('New soil data:', newSoilData);
-            const savedSoilData = await saveSoilData(newSoilData);
-            console.log('Saved soil data:', savedSoilData);
-            Alert.alert('Soil saved successfully');
+            await saveSoilData(newSoilData);
+            console.log('Saved soil data to local database');
+            Alert.alert('Success', 'Soil data saved successfully to local database. Sync when ready.');
             setIsModalVisible(false);
             setComments('Comments');
             navigation.navigate('Home');
@@ -271,16 +325,9 @@ export default function SensorScreen() {
             return;
         }
 
-        // Convert soil ID from "S0026" format to numeric 26
-        const numericSoilID = idToNumber(soilID);
-        if (isNaN(numericSoilID)) {
-            Alert.alert('Error', 'Invalid Soil ID format');
-            return;
-        }
-
         try {
             const newParameterData = {
-                Soil_ID: numericSoilID,
+                Soil_ID: soilID,
                 Parameters: {
                     Hum: soilData.moisture,
                     Temp: soilData.temperature,
@@ -293,9 +340,9 @@ export default function SensorScreen() {
                 }
             };
             console.log('New parameter data:', newParameterData);
-            const updatedParameterData = await saveParameterData(newParameterData);
-            console.log('Updated parameter data:', updatedParameterData);
-            Alert.alert('Success', 'Parameter updated successfully');
+            await saveParameterData(newParameterData);
+            console.log('Parameter data saved to local database');
+            Alert.alert('Success', 'Parameter saved successfully to local database. Sync when ready.');
             setIsModalVisible(false);
             setComments('Comments');
             setSoilID('Select Soil ID');
@@ -306,6 +353,50 @@ export default function SensorScreen() {
             Alert.alert('Error', 'Failed to update parameter data. Please check the console for details.');
         }
     };
+
+    // Show loading state while checking backend
+    if (isCheckingBackend) {
+        return (
+            <View style={[sensorScreenStyles.mainContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ fontSize: 18, color: colors.dark }}>Checking sensor availability...</Text>
+            </View>
+        );
+    }
+
+    // Show "Sensor Unavailable" message if backend is offline
+    if (!isBackendOnline) {
+        return (
+            <View style={[sensorScreenStyles.mainContainer, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+                <Text style={{ 
+                    fontSize: 24, 
+                    fontWeight: 'bold', 
+                    color: colors.danger,
+                    marginBottom: 12,
+                    textAlign: 'center'
+                }}>
+                    Sensor Unavailable
+                </Text>
+                <Text style={{ 
+                    fontSize: 16, 
+                    color: colors.dark,
+                    textAlign: 'center',
+                    marginBottom: 20
+                }}>
+                    The backend server is currently offline. Please check your connection and try again.
+                </Text>
+                <Button
+                    title="Retry Connection"
+                    onPress={async () => {
+                        setIsCheckingBackend(true);
+                        const online = await checkConnectivity();
+                        setIsBackendOnline(online);
+                        setIsCheckingBackend(false);
+                    }}
+                    color={colors.primary}
+                />
+            </View>
+        );
+    }
 
     return (
         <ScrollView>
