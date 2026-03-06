@@ -1,3 +1,7 @@
+
+
+# ARCHIVED MARCH 6, 2026
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Narra Soil Sensor App (FRONTEND APP)
